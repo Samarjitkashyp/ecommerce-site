@@ -61,7 +61,7 @@
             <div class="category-slider owl-carousel owl-theme">
                 <!-- Category 1: Fashion -->
                 <div class="category-item">
-                    <a href="#" class="category-link">
+                    <a href="{{ route('category', 'travel') }}" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
                                 <img src="{{ asset('images/category-slider/1.png') }}" alt="Fashion">
@@ -241,9 +241,9 @@
                         <div class="brand-name">Jack & Jones</div>
                         
                         <!-- Product Title -->
-                        <h3 class="product-title">
+                        <a href=""><h3 class="product-title">
                             Multi-Color Abstract Print Sliders
-                        </h3>
+                        </h3></a>
                         
                         <!-- Price Section -->
                         <div class="price-section">
