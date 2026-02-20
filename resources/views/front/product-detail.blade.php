@@ -11,9 +11,13 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('category', 'fashion') }}" class="text-decoration-none">Fashion</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('category', 'mens-clothing') }}" class="text-decoration-none">Men's Clothing</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Men's Printed T-Shirt</li>
+                <li class="breadcrumb-item"><a href="{{ route('category', $product['category'] ?? 'fashion') }}" class="text-decoration-none">
+                    {{ ucfirst($product['category'] ?? 'Fashion') }}
+                </a></li>
+                <li class="breadcrumb-item"><a href="{{ route('category', $product['subcategory'] ?? 'mens-clothing') }}" class="text-decoration-none">
+                    {{ str_replace('-', ' ', ucfirst($product['subcategory'] ?? 'Men\'s Clothing')) }}
+                </a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ $product['name'] ?? 'Product' }}</li>
             </ol>
         </nav>
     </div>
@@ -33,8 +37,8 @@
                     <!-- Main Image with Zoom -->
                     <div class="main-image-container mb-3">
                         <div class="zoom-container">
-                            <img src="https://picsum.photos/500/500?random=201" 
-                                 alt="Product Main Image" 
+                            <img src="{{ $product['images']['main'] ?? 'https://picsum.photos/500/500?random=201' }}" 
+                                 alt="{{ $product['name'] ?? 'Product Image' }}" 
                                  class="img-fluid main-image" 
                                  id="mainProductImage">
                             
@@ -45,7 +49,9 @@
                             <div class="zoom-result"></div>
                             
                             <!-- Badges -->
-                            <div class="product-badge-large">BESTSELLER</div>
+                            @if(isset($product['badge']))
+                            <div class="product-badge-large">{{ $product['badge'] }}</div>
+                            @endif
                             
                             <!-- Wishlist Button -->
                             <button class="btn wishlist-btn" title="Add to Wishlist">
@@ -57,36 +63,48 @@
                     <!-- Thumbnail Images -->
                     <div class="thumbnail-images">
                         <div class="row g-2">
-                            <div class="col-3">
-                                <div class="thumbnail-item active" onclick="changeImage(this, 'https://picsum.photos/500/500?random=201')">
-                                    <img src="https://picsum.photos/100/100?random=201" alt="Thumbnail 1" class="img-fluid">
+                            @if(isset($product['images']['thumbnails']) && count($product['images']['thumbnails']) > 0)
+                                @foreach($product['images']['thumbnails'] as $index => $thumbnail)
+                                <div class="col-3">
+                                    <div class="thumbnail-item {{ $index == 0 ? 'active' : '' }}" 
+                                         onclick="changeImage(this, '{{ $thumbnail }}')">
+                                        <img src="{{ $thumbnail }}" alt="Thumbnail {{ $index+1 }}" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=202')">
-                                    <img src="https://picsum.photos/100/100?random=202" alt="Thumbnail 2" class="img-fluid">
+                                @endforeach
+                            @else
+                                <!-- Default thumbnails if none provided -->
+                                <div class="col-3">
+                                    <div class="thumbnail-item active" onclick="changeImage(this, 'https://picsum.photos/500/500?random=201')">
+                                        <img src="https://picsum.photos/100/100?random=201" alt="Thumbnail 1" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=203')">
-                                    <img src="https://picsum.photos/100/100?random=203" alt="Thumbnail 3" class="img-fluid">
+                                <div class="col-3">
+                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=202')">
+                                        <img src="https://picsum.photos/100/100?random=202" alt="Thumbnail 2" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=204')">
-                                    <img src="https://picsum.photos/100/100?random=204" alt="Thumbnail 4" class="img-fluid">
+                                <div class="col-3">
+                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=203')">
+                                        <img src="https://picsum.photos/100/100?random=203" alt="Thumbnail 3" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=205')">
-                                    <img src="https://picsum.photos/100/100?random=205" alt="Thumbnail 5" class="img-fluid">
+                                <div class="col-3">
+                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=204')">
+                                        <img src="https://picsum.photos/100/100?random=204" alt="Thumbnail 4" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=206')">
-                                    <img src="https://picsum.photos/100/100?random=206" alt="Thumbnail 6" class="img-fluid">
+                                <div class="col-3">
+                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=205')">
+                                        <img src="https://picsum.photos/100/100?random=205" alt="Thumbnail 5" class="img-fluid">
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="col-3">
+                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=206')">
+                                        <img src="https://picsum.photos/100/100?random=206" alt="Thumbnail 6" class="img-fluid">
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     
@@ -109,17 +127,17 @@
                 <div class="product-info-wrapper">
                     <!-- Brand -->
                     <div class="brand-section mb-2">
-                        <a href="#" class="brand-link">Jack & Jones</a>
+                        <a href="{{ route('category', $product['category'] ?? 'fashion') }}" class="brand-link">{{ $product['brand'] ?? 'Brand' }}</a>
                     </div>
                     
                     <!-- Product Title -->
-                    <h1 class="product-title-main">Men's Printed Round Neck Pure Cotton T-Shirt</h1>
+                    <h1 class="product-title-main">{{ $product['name'] ?? 'Product Title' }}</h1>
                     
                     <!-- Rating Section -->
                     <div class="rating-section mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <span class="rating-badge-large">4.3 <i class="fas fa-star"></i></span>
-                            <span class="rating-count">3,245 ratings and 127 reviews</span>
+                            <span class="rating-badge-large">{{ $product['rating'] ?? '4.3' }} <i class="fas fa-star"></i></span>
+                            <span class="rating-count">{{ number_format($product['reviews'] ?? 3245) }} ratings and {{ number_format(($product['reviews'] ?? 3245)/25) }} reviews</span>
                         </div>
                         <div class="rating-breakdown mt-2">
                             <div class="rating-row">
@@ -163,9 +181,11 @@
                     <!-- Price Section -->
                     <div class="price-section-main mb-3">
                         <div class="d-flex align-items-baseline gap-3">
-                            <span class="current-price-large">₹799</span>
-                            <span class="original-price-large">₹2,499</span>
-                            <span class="discount-large">68% off</span>
+                            <span class="current-price-large">₹{{ number_format($product['price'] ?? 799) }}</span>
+                            @if(isset($product['original_price']) && $product['original_price'] > $product['price'])
+                            <span class="original-price-large">₹{{ number_format($product['original_price']) }}</span>
+                            <span class="discount-large">{{ $product['discount'] ?? 68 }}% off</span>
+                            @endif
                         </div>
                         <div class="price-info mt-1">
                             <span class="tax-info">inclusive of all taxes</span>
@@ -193,50 +213,73 @@
                     </div>
                     
                     <!-- Color Selection -->
+                    @if(isset($product['colors']) && count($product['colors']) > 0)
                     <div class="color-section mb-3">
-                        <h5 class="section-subtitle">Color: <span class="selected-color">Navy Blue</span></h5>
+                        <h5 class="section-subtitle">Color: <span class="selected-color">{{ $product['colors'][0] ?? 'Navy Blue' }}</span></h5>
                         <div class="color-options">
-                            <div class="color-option active" style="background-color: #000080;" title="Navy Blue"></div>
-                            <div class="color-option" style="background-color: #ff0000;" title="Red"></div>
-                            <div class="color-option" style="background-color: #000000;" title="Black"></div>
-                            <div class="color-option" style="background-color: #808080;" title="Grey"></div>
-                            <div class="color-option" style="background-color: #ffffff; border: 1px solid #ddd;" title="White"></div>
-                            <div class="color-option" style="background-color: #008000;" title="Green"></div>
+                            @foreach($product['colors'] as $color)
+                            @php
+                                // Color mapping function as PHP code inside Blade
+                                $colorCode = match($color) {
+                                    'Navy Blue' => '#000080',
+                                    'Red' => '#ff0000',
+                                    'Black' => '#000000',
+                                    'Grey' => '#808080',
+                                    'White' => '#ffffff',
+                                    'Green' => '#008000',
+                                    'Blue' => '#0000ff',
+                                    'Yellow' => '#ffff00',
+                                    'Purple' => '#800080',
+                                    'Orange' => '#ffa500',
+                                    'Brown' => '#a52a2a',
+                                    'Pink' => '#ffc0cb',
+                                    default => '#cccccc'
+                                };
+                            @endphp
+                            <div class="color-option {{ $loop->first ? 'active' : '' }}" 
+                                 style="background-color: {{ $colorCode }}; {{ $color == 'White' ? 'border: 1px solid #ddd;' : '' }}" 
+                                 title="{{ $color }}"></div>
+                            @endforeach
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Size Selection -->
+                    @if(isset($product['sizes']) && count($product['sizes']) > 0)
                     <div class="size-section mb-3">
                         <div class="d-flex justify-content-between">
                             <h5 class="section-subtitle">Select Size</h5>
                             <a href="#" class="size-chart-link"><i class="fas fa-ruler"></i> Size Chart</a>
                         </div>
                         <div class="size-options">
-                            <div class="size-option active">S</div>
-                            <div class="size-option">M</div>
-                            <div class="size-option">L</div>
-                            <div class="size-option">XL</div>
-                            <div class="size-option">XXL</div>
+                            @foreach($product['sizes'] as $size)
+                            <div class="size-option {{ $loop->first ? 'active' : '' }}">{{ $size }}</div>
+                            @endforeach
                             <div class="size-option disabled">XXXL</div>
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Quantity -->
                     <div class="quantity-section mb-3">
                         <h5 class="section-subtitle">Quantity</h5>
                         <div class="quantity-selector">
-                            <button class="quantity-btn" onclick="decreaseQuantity()">-</button>
-                            <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="10">
-                            <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                            <button class="quantity-btn" id="decreaseQty">-</button>
+                            <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="10" readonly>
+                            <button class="quantity-btn" id="increaseQty">+</button>
                         </div>
                     </div>
                     
                     <!-- Action Buttons -->
                     <div class="action-buttons">
-                        <button class="btn btn-add-to-cart" id="addToCartBtn">
+                        <button class="btn btn-add-to-cart" id="addToCartBtn" 
+                                data-id="{{ $product['id'] ?? 1 }}"
+                                data-name="{{ $product['name'] ?? 'Product' }}"
+                                data-brand="{{ $product['brand'] ?? 'Brand' }}"
+                                data-price="{{ $product['price'] ?? 799 }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
-                        <button class="btn btn-buy-now">
+                        <button class="btn btn-buy-now" id="buyNowBtn">
                             <i class="fas fa-bolt"></i> Buy Now
                         </button>
                     </div>
@@ -250,7 +293,7 @@
                         </div>
                         <div class="delivery-date">
                             <i class="fas fa-truck"></i>
-                            <span>Delivery by <strong>24 Feb 2026</strong> | <span class="text-success">Free</span></span>
+                            <span>Delivery by <strong>{{ date('d M Y', strtotime('+3 days')) }}</strong> | <span class="text-success">Free</span></span>
                         </div>
                         <div class="stock-status text-success mt-2">
                             <i class="fas fa-check-circle"></i> In Stock
@@ -259,29 +302,30 @@
                         <!-- Pin Code Check -->
                         <div class="pincode-check mt-3">
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Enter pincode" id="pincodeInput">
+                                <input type="text" class="form-control" placeholder="Enter pincode" id="pincodeInput" maxlength="6">
                                 <button class="btn btn-outline-primary" type="button" id="checkPincode">Check</button>
                             </div>
+                            <div id="pincodeMessage" class="small mt-1"></div>
                         </div>
                     </div>
                     
                     <!-- Product Highlights -->
+                    @if(isset($product['highlights']) && count($product['highlights']) > 0)
                     <div class="product-highlights mt-3">
                         <h5 class="section-subtitle">Product Highlights</h5>
                         <ul class="highlights-list">
-                            <li><i class="fas fa-check-circle"></i> 100% Pure Cotton</li>
-                            <li><i class="fas fa-check-circle"></i> Regular Fit</li>
-                            <li><i class="fas fa-check-circle"></i> Machine Wash</li>
-                            <li><i class="fas fa-check-circle"></i> Round Neck</li>
-                            <li><i class="fas fa-check-circle"></i> Half Sleeves</li>
+                            @foreach($product['highlights'] as $highlight)
+                            <li><i class="fas fa-check-circle"></i> {{ $highlight }}</li>
+                            @endforeach
                         </ul>
                     </div>
+                    @endif
                     
                     <!-- Seller Info -->
                     <div class="seller-info mt-3">
                         <span class="seller-label">Seller: </span>
-                        <a href="#" class="seller-name">SuperComNet</a>
-                        <span class="seller-rating"><i class="fas fa-star text-warning"></i> 4.2 (12k ratings)</span>
+                        <a href="#" class="seller-name">{{ $product['seller'] ?? 'SuperComNet' }}</a>
+                        <span class="seller-rating"><i class="fas fa-star text-warning"></i> {{ $product['seller_rating'] ?? 4.2 }} ({{ number_format($product['seller_ratings_count'] ?? 12000) }} ratings)</span>
                     </div>
                 </div>
             </div>
@@ -297,12 +341,12 @@
                         <div class="coupon-card">
                             <div class="coupon-code">FASHION10</div>
                             <div class="coupon-desc">10% off on Fashion items</div>
-                            <button class="btn-apply-coupon">Apply</button>
+                            <button class="btn-apply-coupon" data-coupon="FASHION10">Apply</button>
                         </div>
                         <div class="coupon-card">
                             <div class="coupon-code">NEWUSER50</div>
                             <div class="coupon-desc">Flat ₹50 off for new users</div>
-                            <button class="btn-apply-coupon">Apply</button>
+                            <button class="btn-apply-coupon" data-coupon="NEWUSER50">Apply</button>
                         </div>
                         <a href="#" class="view-all-coupons">View All Coupons</a>
                     </div>
@@ -352,7 +396,7 @@
                     <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">Specifications</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews (127)</button>
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews ({{ number_format(($product['reviews'] ?? 3245)/25) }})</button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="warranty-tab" data-bs-toggle="tab" data-bs-target="#warranty" type="button" role="tab">Warranty</button>
@@ -364,16 +408,22 @@
                 <!-- Description Tab -->
                 <div class="tab-pane fade show active" id="description" role="tabpanel">
                     <h5>Product Description</h5>
-                    <p>Elevate your casual style with this men's printed round neck t-shirt from Jack & Jones. Crafted from premium quality pure cotton, this t-shirt offers exceptional comfort and breathability throughout the day. The regular fit design ensures a relaxed yet stylish look, while the printed pattern adds a touch of contemporary flair.</p>
+                    <p>{{ $product['description'] ?? 'Elevate your casual style with this men\'s printed round neck t-shirt from Jack & Jones. Crafted from premium quality pure cotton, this t-shirt offers exceptional comfort and breathability throughout the day. The regular fit design ensures a relaxed yet stylish look, while the printed pattern adds a touch of contemporary flair.' }}</p>
                     
                     <h6 class="mt-3">Key Features:</h6>
                     <ul>
-                        <li>100% Pure Cotton for superior comfort</li>
-                        <li>Regular fit for a relaxed silhouette</li>
-                        <li>Round neck design for a classic look</li>
-                        <li>Half sleeves for ease of movement</li>
-                        <li>Machine washable for easy care</li>
-                        <li>Available in multiple colors and sizes</li>
+                        @if(isset($product['highlights']) && count($product['highlights']) > 0)
+                            @foreach($product['highlights'] as $highlight)
+                            <li>{{ $highlight }}</li>
+                            @endforeach
+                        @else
+                            <li>100% Pure Cotton for superior comfort</li>
+                            <li>Regular fit for a relaxed silhouette</li>
+                            <li>Round neck design for a classic look</li>
+                            <li>Half sleeves for ease of movement</li>
+                            <li>Machine washable for easy care</li>
+                            <li>Available in multiple colors and sizes</li>
+                        @endif
                     </ul>
                 </div>
                 
@@ -383,11 +433,11 @@
                     <table class="table table-striped">
                         <tr>
                             <th>Brand</th>
-                            <td>Jack & Jones</td>
+                            <td>{{ $product['brand'] ?? 'Jack & Jones' }}</td>
                         </tr>
                         <tr>
                             <th>Model Name</th>
-                            <td>Printed Cotton T-Shirt</td>
+                            <td>{{ $product['name'] ?? 'Printed Cotton T-Shirt' }}</td>
                         </tr>
                         <tr>
                             <th>Material</th>
@@ -411,11 +461,11 @@
                         </tr>
                         <tr>
                             <th>Color</th>
-                            <td>Navy Blue</td>
+                            <td>{{ $product['colors'][0] ?? 'Navy Blue' }}</td>
                         </tr>
                         <tr>
                             <th>Size</th>
-                            <td>S, M, L, XL, XXL</td>
+                            <td>{{ implode(', ', $product['sizes'] ?? ['S', 'M', 'L', 'XL', 'XXL']) }}</td>
                         </tr>
                         <tr>
                             <th>Care Instructions</th>
@@ -432,18 +482,19 @@
                 <div class="tab-pane fade" id="reviews" role="tabpanel">
                     <div class="reviews-summary d-flex align-items-center gap-4 mb-4">
                         <div class="average-rating text-center">
-                            <h2 class="mb-0">4.3</h2>
+                            <h2 class="mb-0">{{ $product['rating'] ?? 4.3 }}</h2>
                             <div class="stars">
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star-half-alt text-warning"></i>
+                                @for($i = 1; $i <= 5; $i++)
+                                    @if($i <= floor($product['rating'] ?? 4.3))
+                                        <i class="fas fa-star text-warning"></i>
+                                    @elseif($i == ceil($product['rating'] ?? 4.3) && ($product['rating'] ?? 4.3) - floor($product['rating'] ?? 4.3) >= 0.5)
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    @else
+                                        <i class="far fa-star text-warning"></i>
+                                    @endif
+                                @endfor
                             </div>
-                            <p class="text-muted">127 Reviews</p>
-                        </div>
-                        <div class="rating-bars">
-                            <!-- Rating bars here -->
+                            <p class="text-muted">{{ number_format(($product['reviews'] ?? 3245)/25) }} Reviews</p>
                         </div>
                     </div>
                     
@@ -488,7 +539,7 @@
                 <!-- Warranty Tab -->
                 <div class="tab-pane fade" id="warranty" role="tabpanel">
                     <h5>Warranty Information</h5>
-                    <p>This product comes with 1 year manufacturer warranty against any manufacturing defects.</p>
+                    <p>{{ $product['warranty'] ?? 'This product comes with 1 year manufacturer warranty against any manufacturing defects.' }}</p>
                     
                     <h6 class="mt-3">Warranty Terms:</h6>
                     <ul>
@@ -508,142 +559,57 @@
 <!-- ============================================
      RELATED PRODUCTS SECTION
      ============================================ -->
+@if(isset($relatedProducts) && count($relatedProducts) > 0)
 <section class="related-products-section py-5">
     <div class="container">
         <h2 class="section-title text-center mb-4">You May Also Like</h2>
         <div class="related-products-slider owl-carousel owl-theme">
-            <!-- Related Product 1 -->
+            @foreach($relatedProducts as $related)
             <div class="product-item">
                 <div class="modern-product-card">
-                    <div class="product-badge">BESTSELLER</div>
+                    @if(isset($related['badge']))
+                    <div class="product-badge 
+                        @if($related['badge'] == 'TRENDING') trending 
+                        @elseif($related['badge'] == 'NEW') new 
+                        @else bestseller @endif">
+                        {{ $related['badge'] }}
+                    </div>
+                    @endif
                     <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=301" alt="Related Product 1">
+                        <img src="{{ $related['image'] ?? 'https://picsum.photos/300/300?random=' . $related['id'] }}" alt="{{ $related['name'] }}">
                         <div class="product-actions">
                             <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
                             <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
                         </div>
                     </div>
                     <div class="product-info">
-                        <div class="brand-name">Nike</div>
-                        <h3 class="product-title">Men's Solid Regular Fit T-Shirt</h3>
+                        <div class="brand-name">{{ $related['brand'] }}</div>
+                        <a href="{{ route('product.detail', ['id' => $related['id'], 'slug' => $related['slug'] ?? Str::slug($related['name'])]) }}">
+                            <h3 class="product-title">{{ $related['name'] }}</h3>
+                        </a>
                         <div class="price-section">
-                            <span class="current-price">₹999</span>
-                            <span class="original-price">₹1,999</span>
-                            <span class="discount">50% off</span>
+                            <span class="current-price">₹{{ number_format($related['price']) }}</span>
+                            @if(isset($related['original_price']))
+                            <span class="original-price">₹{{ number_format($related['original_price']) }}</span>
+                            <span class="discount">{{ $related['discount'] }}% off</span>
+                            @endif
                         </div>
-                        <button class="add-to-cart-btn mt-2" data-id="101">
+                        <button class="add-to-cart-btn mt-2" 
+                                data-id="{{ $related['id'] }}"
+                                data-name="{{ $related['name'] }}"
+                                data-brand="{{ $related['brand'] }}"
+                                data-price="{{ $related['price'] }}"
+                                data-image="{{ $related['image'] ?? 'https://picsum.photos/300/300?random=' . $related['id'] }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Related Product 2 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge trending">TRENDING</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=302" alt="Related Product 2">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
-                            <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Puma</div>
-                        <h3 class="product-title">Men's Printed Hoodie</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹1,499</span>
-                            <span class="original-price">₹2,999</span>
-                            <span class="discount">50% off</span>
-                        </div>
-                        <button class="add-to-cart-btn mt-2" data-id="102">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Related Product 3 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge new">NEW</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=303" alt="Related Product 3">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
-                            <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Adidas</div>
-                        <h3 class="product-title">Men's Running Shoes</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹2,499</span>
-                            <span class="original-price">₹4,999</span>
-                            <span class="discount">50% off</span>
-                        </div>
-                        <button class="add-to-cart-btn mt-2" data-id="103">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Related Product 4 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge">BESTSELLER</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=304" alt="Related Product 4">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
-                            <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Levi's</div>
-                        <h3 class="product-title">Men's Skinny Fit Jeans</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹1,999</span>
-                            <span class="original-price">₹3,999</span>
-                            <span class="discount">50% off</span>
-                        </div>
-                        <button class="add-to-cart-btn mt-2" data-id="104">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Related Product 5 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge trending">TRENDING</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=305" alt="Related Product 5">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
-                            <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Fastrack</div>
-                        <h3 class="product-title">Men's Analog Watch</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹1,295</span>
-                            <span class="original-price">₹2,995</span>
-                            <span class="discount">56% off</span>
-                        </div>
-                        <button class="add-to-cart-btn mt-2" data-id="105">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <!-- ============================================
      RECENTLY VIEWED PRODUCTS
@@ -651,86 +617,8 @@
 <section class="recently-viewed-section py-5 bg-light">
     <div class="container">
         <h2 class="section-title text-center mb-4">Recently Viewed</h2>
-        <div class="recently-viewed-slider owl-carousel owl-theme">
-            <!-- Recently Viewed 1 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=401" alt="Recently Viewed 1">
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Sony</div>
-                        <h3 class="product-title">Wireless Headphones</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹3,999</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recently Viewed 2 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=402" alt="Recently Viewed 2">
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Boat</div>
-                        <h3 class="product-title">Smart Watch</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹2,499</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recently Viewed 3 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=403" alt="Recently Viewed 3">
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Samsung</div>
-                        <h3 class="product-title">Power Bank</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹1,499</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recently Viewed 4 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=404" alt="Recently Viewed 4">
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">MI</div>
-                        <h3 class="product-title">Smart Band</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹2,299</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recently Viewed 5 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=405" alt="Recently Viewed 5">
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">JBL</div>
-                        <h3 class="product-title">Bluetooth Speaker</h3>
-                        <div class="price-section">
-                            <span class="current-price">₹3,999</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="recently-viewed-slider owl-carousel owl-theme" id="recentlyViewedSlider">
+            <!-- Recently viewed items will be loaded via JavaScript -->
         </div>
     </div>
 </section>
@@ -1430,6 +1318,8 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    'use strict';
+    
     // ============================================
     // IMAGE ZOOM FUNCTIONALITY
     // ============================================
@@ -1438,47 +1328,52 @@ $(document).ready(function() {
     const lens = $('.zoom-lens');
     const result = $('.zoom-result');
     
-    zoomContainer.on('mousemove', function(e) {
-        e.preventDefault();
-        
-        const containerOffset = zoomContainer.offset();
-        const containerWidth = zoomContainer.width();
-        const containerHeight = zoomContainer.height();
-        
-        // Calculate mouse position relative to container
-        let posX = e.pageX - containerOffset.left;
-        let posY = e.pageY - containerOffset.top;
-        
-        // Keep lens within bounds
-        posX = Math.min(containerWidth - lens.width(), Math.max(0, posX - lens.width() / 2));
-        posY = Math.min(containerHeight - lens.height(), Math.max(0, posY - lens.height() / 2));
-        
-        // Position the lens
-        lens.css({
-            left: posX,
-            top: posY
+    if (zoomContainer.length && mainImage.length) {
+        zoomContainer.on('mousemove', function(e) {
+            e.preventDefault();
+            
+            const containerOffset = zoomContainer.offset();
+            const containerWidth = zoomContainer.width();
+            const containerHeight = zoomContainer.height();
+            
+            // Calculate mouse position relative to container
+            let posX = e.pageX - containerOffset.left;
+            let posY = e.pageY - containerOffset.top;
+            
+            // Keep lens within bounds
+            posX = Math.min(containerWidth - lens.width(), Math.max(0, posX - lens.width() / 2));
+            posY = Math.min(containerHeight - lens.height(), Math.max(0, posY - lens.height() / 2));
+            
+            // Position the lens
+            lens.css({
+                left: posX,
+                top: posY,
+                display: 'block'
+            });
+            
+            // Calculate zoom background position
+            const bgX = (posX / containerWidth) * 100;
+            const bgY = (posY / containerHeight) * 100;
+            
+            // Update zoom result
+            result.css({
+                backgroundImage: `url('${mainImage.attr('src')}')`,
+                backgroundPosition: `${bgX}% ${bgY}%`,
+                display: 'block'
+            });
         });
         
-        // Calculate zoom background position
-        const bgX = (posX / containerWidth) * 100;
-        const bgY = (posY / containerHeight) * 100;
-        
-        // Update zoom result
-        result.css({
-            backgroundImage: `url('${mainImage.attr('src')}')`,
-            backgroundPosition: `${bgX}% ${bgY}%`,
-            display: 'block'
+        zoomContainer.on('mouseleave', function() {
+            lens.hide();
+            result.hide();
         });
-    });
-    
-    zoomContainer.on('mouseleave', function() {
-        lens.hide();
-        result.hide();
-    });
-    
-    zoomContainer.on('mouseenter', function() {
-        lens.show();
-    });
+        
+        zoomContainer.on('mouseenter', function() {
+            if (lens.is(':hidden')) {
+                lens.show();
+            }
+        });
+    }
     
     // ============================================
     // CHANGE MAIN IMAGE
@@ -1495,23 +1390,25 @@ $(document).ready(function() {
     // ============================================
     // QUANTITY CONTROLS
     // ============================================
-    window.increaseQuantity = function() {
+    $('#increaseQty').on('click', function(e) {
+        e.preventDefault();
         let input = $('#productQuantity');
         let value = parseInt(input.val());
         let max = parseInt(input.attr('max'));
         if (value < max) {
             input.val(value + 1);
         }
-    };
+    });
     
-    window.decreaseQuantity = function() {
+    $('#decreaseQty').on('click', function(e) {
+        e.preventDefault();
         let input = $('#productQuantity');
         let value = parseInt(input.val());
         let min = parseInt(input.attr('min'));
         if (value > min) {
             input.val(value - 1);
         }
-    };
+    });
     
     // ============================================
     // COLOR SELECTION
@@ -1552,58 +1449,117 @@ $(document).ready(function() {
     // PINCODE CHECK
     // ============================================
     $('#checkPincode').on('click', function() {
-        let pincode = $('#pincodeInput').val();
+        let pincode = $('#pincodeInput').val().trim();
         
-        if (pincode.length === 6 && !isNaN(pincode)) {
+        if (pincode.length === 6 && /^\d+$/.test(pincode)) {
             // Simulate API call
+            $('#pincodeMessage').html('<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Checking...</span>');
+            
             setTimeout(function() {
-                showNotification('Delivery available at ' + pincode, 'success');
-            }, 500);
+                if (pincode === '781030' || pincode === '110001' || pincode === '400001') {
+                    $('#pincodeMessage').html('<span class="text-success"><i class="fas fa-check-circle"></i> Delivery available at ' + pincode + '</span>');
+                } else {
+                    $('#pincodeMessage').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Delivery not available at this pincode</span>');
+                }
+            }, 1000);
         } else {
-            showNotification('Please enter valid 6-digit pincode', 'warning');
+            $('#pincodeMessage').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Please enter valid 6-digit pincode</span>');
+        }
+    });
+    
+    // Allow only numbers in pincode input
+    $('#pincodeInput').on('keypress', function(e) {
+        if (e.which < 48 || e.which > 57) {
+            e.preventDefault();
         }
     });
     
     // ============================================
-    // ADD TO CART
+    // ADD TO CART - FIXED WORKING VERSION
     // ============================================
-    $('#addToCartBtn').on('click', function() {
-        let button = $(this);
-        let quantity = $('#productQuantity').val();
-        let size = $('.size-option.active').text() || 'S';
-        let color = $('.color-option.active').attr('title') || 'Navy Blue';
-        
-        // Button animation
-        button.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-        button.prop('disabled', true);
-        
-        setTimeout(function() {
-            // Get current cart count
-            let currentCount = parseInt($('.cart-count').text()) || 0;
-            $('.cart-count').text(currentCount + parseInt(quantity));
-            $('.mobile-cart-count').text(currentCount + parseInt(quantity));
+    // ============================================
+// ADD TO CART - FIXED WORKING VERSION
+// ============================================
+$('#addToCartBtn').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    let button = $(this);
+    let quantity = $('#productQuantity').val();
+    let size = $('.size-option.active').text() || 'S';
+    let color = $('.color-option.active').attr('title') || 'Navy Blue';
+    
+    // Get product details
+    let id = button.data('id');
+    let name = button.data('name');
+    let brand = button.data('brand');
+    let price = button.data('price');
+    let image = $('#mainProductImage').attr('src');
+    
+    console.log('Adding to cart:', {id, name, brand, price, image, quantity, size, color});
+    
+    // Button animation
+    let originalText = button.html();
+    button.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+    button.prop('disabled', true);
+    
+    $.ajax({
+        url: '/cart/add', // Direct URL - guaranteed to work
+        type: 'POST',
+        data: {
+            id: id,
+            name: name,
+            brand: brand,
+            price: price,
+            image: image,
+            quantity: quantity,
+            selected_size: size,
+            selected_color: color,
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            console.log('Add to cart success:', response);
             
-            // Animate cart
-            $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
-            setTimeout(function() {
-                $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
-            }, 1000);
+            if (response.success) {
+                // Update cart count
+                $('.cart-count').text(response.cart_count);
+                $('.mobile-cart-count').text(response.cart_count);
+                
+                // Animate cart
+                $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
+                setTimeout(function() {
+                    $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
+                }, 1000);
+                
+                showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+                
+                // Redirect to cart page
+                setTimeout(function() {
+                    window.location.href = response.redirect;
+                }, 1000);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Add to cart error:', error);
+            console.error('Response:', xhr.responseText);
             
-            // Reset button
-            button.html('<i class="fas fa-shopping-cart"></i> Add to Cart');
+            button.html(originalText);
             button.prop('disabled', false);
             
-            showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+            let errorMessage = 'Error adding to cart';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
             
-            // Save to recently viewed (localStorage)
-            saveToRecentlyViewed();
-        }, 600);
+            showNotification(errorMessage, 'error');
+        }
     });
+});
     
     // ============================================
     // BUY NOW
     // ============================================
-    $('.btn-buy-now').on('click', function() {
+    $('#buyNowBtn').on('click', function() {
         window.location.href = '{{ route("checkout") }}';
     });
     
@@ -1611,7 +1567,7 @@ $(document).ready(function() {
     // APPLY COUPON
     // ============================================
     $('.btn-apply-coupon').on('click', function() {
-        let couponCode = $(this).siblings('.coupon-code').text();
+        let couponCode = $(this).data('coupon') || $(this).siblings('.coupon-code').text();
         showNotification(`Coupon ${couponCode} applied!`, 'success');
     });
     
@@ -1620,11 +1576,12 @@ $(document).ready(function() {
     // ============================================
     function saveToRecentlyViewed() {
         let product = {
-            id: '{{ request()->segment(2) ?? "product-1" }}',
-            name: $('.product-title-main').text(),
-            brand: $('.brand-link').text(),
-            price: $('.current-price-large').text(),
+            id: '{{ $product["id"] ?? "product-1" }}',
+            name: $('.product-title-main').text().trim(),
+            brand: $('.brand-link').text().trim(),
+            price: $('.current-price-large').text().trim(),
             image: $('#mainProductImage').attr('src'),
+            slug: '{{ $product["slug"] ?? "" }}',
             timestamp: new Date().getTime()
         };
         
@@ -1642,98 +1599,168 @@ $(document).ready(function() {
         }
         
         localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+        
+        // Load recently viewed items
+        loadRecentlyViewed();
     }
+    
+    // Load recently viewed items from localStorage
+    function loadRecentlyViewed() {
+        let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+        
+        if (recentlyViewed.length === 0) {
+            $('.recently-viewed-section').hide();
+            return;
+        }
+        
+        $('.recently-viewed-section').show();
+        
+        let html = '';
+        recentlyViewed.forEach(function(product) {
+            html += `
+            <div class="product-item">
+                <div class="modern-product-card">
+                    <div class="product-image">
+                        <img src="${product.image}" alt="${product.name}">
+                    </div>
+                    <div class="product-info">
+                        <div class="brand-name">${product.brand}</div>
+                        <a href="/product/${product.id}/${product.slug || ''}">
+                            <h3 class="product-title">${product.name}</h3>
+                        </a>
+                        <div class="price-section">
+                            <span class="current-price">${product.price}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+        
+        $('#recentlyViewedSlider').html(html);
+        
+        // Initialize slider if not already initialized
+        if ($('#recentlyViewedSlider').hasClass('owl-loaded')) {
+            $('#recentlyViewedSlider').trigger('destroy.owl.carousel').removeClass('owl-loaded');
+        }
+        
+        $('#recentlyViewedSlider').owlCarousel({
+            loop: recentlyViewed.length > 4,
+            margin: 20,
+            nav: true,
+            dots: false,
+            autoplay: false,
+            responsive: {
+                0: { items: 2, nav: false, dots: true },
+                576: { items: 3, nav: false, dots: true },
+                768: { items: 4, nav: true },
+                992: { items: 5, nav: true }
+            },
+            navText: [
+                '<i class="fas fa-chevron-left"></i>',
+                '<i class="fas fa-chevron-right"></i>'
+            ]
+        });
+    }
+    
+    // Load recently viewed on page load
+    loadRecentlyViewed();
     
     // ============================================
     // RELATED PRODUCTS SLIDER
     // ============================================
-    $('.related-products-slider').owlCarousel({
-        loop: true,
-        margin: 20,
-        nav: true,
-        dots: false,
-        autoplay: true,
-        autoplayTimeout: 4000,
-        responsive: {
-            0: {
-                items: 1,
-                nav: false,
-                dots: true
+    if ($('.related-products-slider').length) {
+        $('.related-products-slider').owlCarousel({
+            loop: true,
+            margin: 20,
+            nav: true,
+            dots: false,
+            autoplay: true,
+            autoplayTimeout: 4000,
+            responsive: {
+                0: { items: 1, nav: false, dots: true },
+                576: { items: 2, nav: false, dots: true },
+                768: { items: 3, nav: true },
+                992: { items: 4, nav: true }
             },
-            576: {
-                items: 2,
-                nav: false,
-                dots: true
-            },
-            768: {
-                items: 3,
-                nav: true
-            },
-            992: {
-                items: 4,
-                nav: true
-            }
-        },
-        navText: [
-            '<i class="fas fa-chevron-left"></i>',
-            '<i class="fas fa-chevron-right"></i>'
-        ]
-    });
+            navText: [
+                '<i class="fas fa-chevron-left"></i>',
+                '<i class="fas fa-chevron-right"></i>'
+            ]
+        });
+    }
     
-    // ============================================
-    // RECENTLY VIEWED SLIDER
-    // ============================================
-    $('.recently-viewed-slider').owlCarousel({
-        loop: true,
-        margin: 20,
-        nav: true,
-        dots: false,
-        autoplay: true,
-        autoplayTimeout: 3000,
-        responsive: {
-            0: {
-                items: 2,
-                nav: false,
-                dots: true
+    // Add to cart for related products
+    $(document).on('click', '.related-products-section .add-to-cart-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let btn = $(this);
+        let id = btn.data('id');
+        let name = btn.data('name');
+        let brand = btn.data('brand');
+        let price = btn.data('price');
+        let image = btn.data('image');
+        
+        console.log('Adding related product to cart:', {id, name, brand, price, image});
+        
+        // Button animation
+        let originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        btn.prop('disabled', true);
+        
+        $.ajax({
+            url: '/cart/add',
+            type: 'POST',
+            data: {
+                id: id,
+                name: name,
+                brand: brand,
+                price: price,
+                image: image,
+                quantity: 1,
+                _token: '{{ csrf_token() }}'
             },
-            576: {
-                items: 3,
-                nav: false,
-                dots: true
+            success: function(response) {
+                if (response.success) {
+                    $('.cart-count').text(response.cart_count);
+                    $('.mobile-cart-count').text(response.cart_count);
+                    
+                    showNotification(response.message, 'success');
+                    
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 1000);
+                }
             },
-            768: {
-                items: 4,
-                nav: true
-            },
-            992: {
-                items: 5,
-                nav: true
+            error: function(xhr) {
+                btn.html(originalText);
+                btn.prop('disabled', false);
+                showNotification('Error adding to cart', 'error');
             }
-        },
-        navText: [
-            '<i class="fas fa-chevron-left"></i>',
-            '<i class="fas fa-chevron-right"></i>'
-        ]
+        });
     });
     
     // ============================================
     // NOTIFICATION FUNCTION
     // ============================================
     function showNotification(message, type = 'info') {
+        // Check if toastr is available
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
         } else {
+            // Create temporary notification
             let notification = $(`
-                <div class="temp-notification ${type}">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-                    <span>${message}</span>
+                <div class="temp-notification ${type}" style="position: fixed; top: 20px; right: 20px; background: ${type === 'success' ? '#4caf50' : '#f44336'}; color: white; padding: 12px 20px; border-radius: 4px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                    <span style="margin-left: 8px;">${message}</span>
                 </div>
             `);
             
             $('body').append(notification);
             
             setTimeout(function() {
-                notification.fadeOut(function() {
+                notification.fadeOut(300, function() {
                     $(this).remove();
                 });
             }, 3000);

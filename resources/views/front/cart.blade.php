@@ -558,21 +558,23 @@
 <script>
 $(document).ready(function() {
     // Initialize suggested products slider
-    $('.suggested-slider').owlCarousel({
-        loop: true,
-        margin: 15,
-        nav: true,
-        dots: false,
-        responsive: {
-            0: { items: 2 },
-            576: { items: 3 },
-            768: { items: 4 }
-        },
-        navText: [
-            '<i class="fas fa-chevron-left"></i>',
-            '<i class="fas fa-chevron-right"></i>'
-        ]
-    });
+    if ($('.suggested-slider').length) {
+        $('.suggested-slider').owlCarousel({
+            loop: true,
+            margin: 15,
+            nav: true,
+            dots: false,
+            responsive: {
+                0: { items: 2 },
+                576: { items: 3 },
+                768: { items: 4 }
+            },
+            navText: [
+                '<i class="fas fa-chevron-left"></i>',
+                '<i class="fas fa-chevron-right"></i>'
+            ]
+        });
+    }
     
     // Increase quantity
     $('.increase-qty').on('click', function() {

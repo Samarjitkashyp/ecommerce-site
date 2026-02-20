@@ -33,10 +33,10 @@ Route::get('/checkout', function() {
 })->name('checkout');
 
 // ============================================
-// CART ROUTES
+// CART ROUTES - COMPLETELY FIXED
 // ============================================
 Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::get('/', [CartController::class, 'index'])->name('index');  // THIS IS cart.index
     Route::post('/add', [CartController::class, 'add'])->name('add');
     Route::post('/update', [CartController::class, 'update'])->name('update');
     Route::post('/remove', [CartController::class, 'remove'])->name('remove');
@@ -46,9 +46,4 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::post('/remove-coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
     Route::post('/clear', [CartController::class, 'clear'])->name('clear');
     Route::get('/count', [CartController::class, 'getCount'])->name('count');
-});
-
-// Redirect old cart route to new one
-Route::get('/cart', function() {
-    return redirect()->route('cart.index');
 });

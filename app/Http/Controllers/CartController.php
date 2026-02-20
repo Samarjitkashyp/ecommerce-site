@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
@@ -18,7 +19,7 @@ class CartController extends Controller
         
         // Calculate totals
         $subtotal = 0;
-        $deliveryCharge = 40; // Default delivery charge
+        $deliveryCharge = 40;
         $tax = 0;
         $discount = 0;
         
@@ -42,13 +43,11 @@ class CartController extends Controller
                 $discount = $appliedCoupon['value'];
             }
         } else {
-            // Default 10% discount for demo
             $discount = round($subtotal * 0.1);
         }
         
         $total = $subtotal + $deliveryCharge + $tax - $discount;
         
-        // Suggested products (based on cart items)
         $suggestedProducts = $this->getSuggestedProducts($cart);
         
         return view('front.cart', compact(
@@ -65,60 +64,85 @@ class CartController extends Controller
     }
     
     /**
-     * Add item to cart
+     * Add item to cart - COMPLETELY FIXED WITH HARDCODED URL
      */
+    /**
+ * Add item to cart - COMPLETELY FIXED
+ */
     public function add(Request $request)
     {
-        $request->validate([
-            'id' => 'required',
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'brand' => 'required',
-            'image' => 'required',
-            'quantity' => 'required|integer|min:1'
-        ]);
-        
-        $cart = Session::get('cart', []);
-        $productId = $request->id;
-        
-        // Check if product already in cart
-        if (isset($cart[$productId])) {
-            // Update quantity
-            $cart[$productId]['quantity'] += $request->quantity;
-        } else {
-            // Add new item
-            $cart[$productId] = [
-                'id' => $productId,
-                'name' => $request->name,
-                'brand' => $request->brand,
-                'price' => $request->price,
-                'original_price' => $request->original_price ?? $request->price,
-                'discount' => $request->discount ?? 0,
-                'image' => $request->image,
-                'quantity' => $request->quantity,
-                'max_quantity' => $request->max_quantity ?? 10,
-                'selected_size' => $request->selected_size ?? null,
-                'selected_color' => $request->selected_color ?? null,
-                'in_stock' => $request->in_stock ?? true,
-                'delivery_date' => now()->addDays(3)->format('d M')
-            ];
-        }
-        
-        Session::put('cart', $cart);
-        
-        // Calculate new cart count
-        $cartCount = array_sum(array_column($cart, 'quantity'));
-        
-        if ($request->ajax()) {
+        try {
+            // Log request data for debugging
+            Log::info('Add to cart request received:', $request->all());
+            
+            // Validate request
+            $validated = $request->validate([
+                'id' => 'required',
+                'name' => 'required|string',
+                'price' => 'required|numeric',
+                'brand' => 'required|string',
+                'image' => 'required|string',
+                'quantity' => 'required|integer|min:1'
+            ]);
+            
+            $cart = Session::get('cart', []);
+            $productId = (string)$request->id;
+            
+            // Check if product already in cart
+            if (isset($cart[$productId])) {
+                $cart[$productId]['quantity'] += (int)$request->quantity;
+            } else {
+                $cart[$productId] = [
+                    'id' => $productId,
+                    'name' => $request->name,
+                    'brand' => $request->brand,
+                    'price' => (float)$request->price,
+                    'original_price' => $request->original_price ?? (float)$request->price,
+                    'discount' => $request->discount ?? 0,
+                    'image' => $request->image,
+                    'quantity' => (int)$request->quantity,
+                    'max_quantity' => $request->max_quantity ?? 10,
+                    'selected_size' => $request->selected_size ?? null,
+                    'selected_color' => $request->selected_color ?? null,
+                    'in_stock' => true,
+                    'delivery_date' => now()->addDays(3)->format('d M')
+                ];
+            }
+            
+            Session::put('cart', $cart);
+            Session::save();
+            
+            $cartCount = 0;
+            foreach ($cart as $item) {
+                $cartCount += $item['quantity'];
+            }
+            
+            Log::info('Cart updated successfully. New count: ' . $cartCount);
+            
+            // FIXED: Use URL helper instead of route() - yeh guaranteed kaam karega
             return response()->json([
                 'success' => true,
                 'message' => 'Item added to cart successfully!',
                 'cart_count' => $cartCount,
-                'cart' => $cart
+                'cart' => $cart,
+                'redirect' => url('/cart') // URL helper use karo
             ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error in add to cart:', $e->errors());
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in add to cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error adding item to cart: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return redirect()->back()->with('success', 'Item added to cart!');
     }
     
     /**
@@ -126,64 +150,78 @@ class CartController extends Controller
      */
     public function update(Request $request)
     {
-        $request->validate([
-            'id' => 'required',
-            'quantity' => 'required|integer|min:1|max:10'
-        ]);
-        
-        $cart = Session::get('cart', []);
-        $productId = $request->id;
-        
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] = $request->quantity;
-            Session::put('cart', $cart);
+        try {
+            $request->validate([
+                'id' => 'required',
+                'quantity' => 'required|integer|min:1|max:10'
+            ]);
             
-            // Recalculate totals
-            $subtotal = 0;
-            foreach ($cart as $item) {
-                $subtotal += $item['price'] * $item['quantity'];
-            }
+            $cart = Session::get('cart', []);
+            $productId = (string)$request->id;
             
-            $deliveryCharge = $subtotal < 499 ? 40 : 0;
-            $tax = round($subtotal * 0.05);
-            
-            $appliedCoupon = Session::get('applied_coupon');
-            if ($appliedCoupon) {
-                if ($appliedCoupon['type'] == 'percentage') {
-                    $discount = round($subtotal * $appliedCoupon['value'] / 100);
-                } else {
-                    $discount = $appliedCoupon['value'];
+            if (isset($cart[$productId])) {
+                $cart[$productId]['quantity'] = (int)$request->quantity;
+                Session::put('cart', $cart);
+                Session::save();
+                
+                // Recalculate totals
+                $subtotal = 0;
+                foreach ($cart as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
                 }
-            } else {
-                $discount = round($subtotal * 0.1);
+                
+                $deliveryCharge = $subtotal < 499 ? 40 : 0;
+                $tax = round($subtotal * 0.05);
+                
+                $appliedCoupon = Session::get('applied_coupon');
+                if ($appliedCoupon) {
+                    if ($appliedCoupon['type'] == 'percentage') {
+                        $discount = round($subtotal * $appliedCoupon['value'] / 100);
+                    } else {
+                        $discount = $appliedCoupon['value'];
+                    }
+                } else {
+                    $discount = round($subtotal * 0.1);
+                }
+                
+                $total = $subtotal + $deliveryCharge + $tax - $discount;
+                
+                $itemTotal = $cart[$productId]['price'] * $cart[$productId]['quantity'];
+                $cartCount = 0;
+                foreach ($cart as $item) {
+                    $cartCount += $item['quantity'];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cart updated!',
+                    'item_total' => $itemTotal,
+                    'item_total_formatted' => '₹' . number_format($itemTotal),
+                    'subtotal' => $subtotal,
+                    'subtotal_formatted' => '₹' . number_format($subtotal),
+                    'delivery_charge' => $deliveryCharge,
+                    'tax' => $tax,
+                    'tax_formatted' => '₹' . number_format($tax),
+                    'discount' => $discount,
+                    'discount_formatted' => '₹' . number_format($discount),
+                    'total' => $total,
+                    'total_formatted' => '₹' . number_format($total),
+                    'cart_count' => $cartCount
+                ]);
             }
-            
-            $total = $subtotal + $deliveryCharge + $tax - $discount;
-            
-            $itemTotal = $cart[$productId]['price'] * $cart[$productId]['quantity'];
             
             return response()->json([
-                'success' => true,
-                'message' => 'Cart updated!',
-                'item_total' => $itemTotal,
-                'item_total_formatted' => '₹' . number_format($itemTotal),
-                'subtotal' => $subtotal,
-                'subtotal_formatted' => '₹' . number_format($subtotal),
-                'delivery_charge' => $deliveryCharge,
-                'tax' => $tax,
-                'tax_formatted' => '₹' . number_format($tax),
-                'discount' => $discount,
-                'discount_formatted' => '₹' . number_format($discount),
-                'total' => $total,
-                'total_formatted' => '₹' . number_format($total),
-                'cart_count' => array_sum(array_column($cart, 'quantity'))
-            ]);
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in update cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating cart'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Item not found in cart'
-        ], 404);
     }
     
     /**
@@ -191,65 +229,79 @@ class CartController extends Controller
      */
     public function remove(Request $request)
     {
-        $request->validate([
-            'id' => 'required'
-        ]);
-        
-        $cart = Session::get('cart', []);
-        $productId = $request->id;
-        
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
-            Session::put('cart', $cart);
+        try {
+            $request->validate([
+                'id' => 'required'
+            ]);
             
-            // If cart becomes empty, remove coupon
-            if (empty($cart)) {
-                Session::forget('applied_coupon');
-            }
+            $cart = Session::get('cart', []);
+            $productId = (string)$request->id;
             
-            // Recalculate totals
-            $subtotal = 0;
-            foreach ($cart as $item) {
-                $subtotal += $item['price'] * $item['quantity'];
-            }
-            
-            $deliveryCharge = $subtotal < 499 ? 40 : 0;
-            $tax = round($subtotal * 0.05);
-            
-            $appliedCoupon = Session::get('applied_coupon');
-            if ($appliedCoupon && !empty($cart)) {
-                if ($appliedCoupon['type'] == 'percentage') {
-                    $discount = round($subtotal * $appliedCoupon['value'] / 100);
-                } else {
-                    $discount = $appliedCoupon['value'];
+            if (isset($cart[$productId])) {
+                unset($cart[$productId]);
+                Session::put('cart', $cart);
+                Session::save();
+                
+                if (empty($cart)) {
+                    Session::forget('applied_coupon');
                 }
-            } else {
-                $discount = round($subtotal * 0.1);
+                
+                // Recalculate totals
+                $subtotal = 0;
+                foreach ($cart as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                
+                $deliveryCharge = $subtotal < 499 ? 40 : 0;
+                $tax = round($subtotal * 0.05);
+                
+                $appliedCoupon = Session::get('applied_coupon');
+                if ($appliedCoupon && !empty($cart)) {
+                    if ($appliedCoupon['type'] == 'percentage') {
+                        $discount = round($subtotal * $appliedCoupon['value'] / 100);
+                    } else {
+                        $discount = $appliedCoupon['value'];
+                    }
+                } else {
+                    $discount = round($subtotal * 0.1);
+                }
+                
+                $total = $subtotal + $deliveryCharge + $tax - $discount;
+                
+                $cartCount = 0;
+                foreach ($cart as $item) {
+                    $cartCount += $item['quantity'];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item removed from cart!',
+                    'cart_empty' => empty($cart),
+                    'cart_count' => $cartCount,
+                    'subtotal' => $subtotal,
+                    'subtotal_formatted' => '₹' . number_format($subtotal),
+                    'delivery_charge' => $deliveryCharge,
+                    'tax' => $tax,
+                    'tax_formatted' => '₹' . number_format($tax),
+                    'discount' => $discount,
+                    'discount_formatted' => '₹' . number_format($discount),
+                    'total' => $total,
+                    'total_formatted' => '₹' . number_format($total)
+                ]);
             }
-            
-            $total = $subtotal + $deliveryCharge + $tax - $discount;
             
             return response()->json([
-                'success' => true,
-                'message' => 'Item removed from cart!',
-                'cart_empty' => empty($cart),
-                'cart_count' => array_sum(array_column($cart, 'quantity')),
-                'subtotal' => $subtotal,
-                'subtotal_formatted' => '₹' . number_format($subtotal),
-                'delivery_charge' => $deliveryCharge,
-                'tax' => $tax,
-                'tax_formatted' => '₹' . number_format($tax),
-                'discount' => $discount,
-                'discount_formatted' => '₹' . number_format($discount),
-                'total' => $total,
-                'total_formatted' => '₹' . number_format($total)
-            ]);
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in remove from cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing item'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Item not found in cart'
-        ], 404);
     }
     
     /**
@@ -257,34 +309,48 @@ class CartController extends Controller
      */
     public function saveForLater(Request $request)
     {
-        $request->validate([
-            'id' => 'required'
-        ]);
-        
-        $cart = Session::get('cart', []);
-        $saved = Session::get('saved_for_later', []);
-        $productId = $request->id;
-        
-        if (isset($cart[$productId])) {
-            // Move to saved
-            $saved[$productId] = $cart[$productId];
-            unset($cart[$productId]);
+        try {
+            $request->validate([
+                'id' => 'required'
+            ]);
             
-            Session::put('cart', $cart);
-            Session::put('saved_for_later', $saved);
+            $cart = Session::get('cart', []);
+            $saved = Session::get('saved_for_later', []);
+            $productId = (string)$request->id;
+            
+            if (isset($cart[$productId])) {
+                $saved[$productId] = $cart[$productId];
+                unset($cart[$productId]);
+                
+                Session::put('cart', $cart);
+                Session::put('saved_for_later', $saved);
+                Session::save();
+                
+                $cartCount = 0;
+                foreach ($cart as $item) {
+                    $cartCount += $item['quantity'];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item saved for later!',
+                    'cart_count' => $cartCount,
+                    'saved_count' => count($saved)
+                ]);
+            }
             
             return response()->json([
-                'success' => true,
-                'message' => 'Item saved for later!',
-                'cart_count' => array_sum(array_column($cart, 'quantity')),
-                'saved_count' => count($saved)
-            ]);
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in save for later: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving item'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Item not found in cart'
-        ], 404);
     }
     
     /**
@@ -292,39 +358,53 @@ class CartController extends Controller
      */
     public function moveToCart(Request $request)
     {
-        $request->validate([
-            'id' => 'required'
-        ]);
-        
-        $cart = Session::get('cart', []);
-        $saved = Session::get('saved_for_later', []);
-        $productId = $request->id;
-        
-        if (isset($saved[$productId])) {
-            // Check if already in cart
-            if (isset($cart[$productId])) {
-                $cart[$productId]['quantity'] += $saved[$productId]['quantity'];
-            } else {
-                $cart[$productId] = $saved[$productId];
+        try {
+            $request->validate([
+                'id' => 'required'
+            ]);
+            
+            $cart = Session::get('cart', []);
+            $saved = Session::get('saved_for_later', []);
+            $productId = (string)$request->id;
+            
+            if (isset($saved[$productId])) {
+                if (isset($cart[$productId])) {
+                    $cart[$productId]['quantity'] += $saved[$productId]['quantity'];
+                } else {
+                    $cart[$productId] = $saved[$productId];
+                }
+                
+                unset($saved[$productId]);
+                
+                Session::put('cart', $cart);
+                Session::put('saved_for_later', $saved);
+                Session::save();
+                
+                $cartCount = 0;
+                foreach ($cart as $item) {
+                    $cartCount += $item['quantity'];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item moved to cart!',
+                    'cart_count' => $cartCount,
+                    'saved_count' => count($saved)
+                ]);
             }
             
-            unset($saved[$productId]);
-            
-            Session::put('cart', $cart);
-            Session::put('saved_for_later', $saved);
-            
             return response()->json([
-                'success' => true,
-                'message' => 'Item moved to cart!',
-                'cart_count' => array_sum(array_column($cart, 'quantity')),
-                'saved_count' => count($saved)
-            ]);
+                'success' => false,
+                'message' => 'Item not found in saved items'
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in move to cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error moving item'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Item not found in saved items'
-        ], 404);
     }
     
     /**
@@ -332,60 +412,67 @@ class CartController extends Controller
      */
     public function applyCoupon(Request $request)
     {
-        $request->validate([
-            'coupon' => 'required|string'
-        ]);
-        
-        $coupon = strtoupper($request->coupon);
-        
-        // Demo coupons
-        $validCoupons = [
-            'SAVE10' => ['value' => 10, 'type' => 'percentage', 'message' => '10% off'],
-            'SAVE20' => ['value' => 20, 'type' => 'percentage', 'message' => '20% off'],
-            'FLAT500' => ['value' => 500, 'type' => 'fixed', 'message' => '₹500 off'],
-            'WELCOME50' => ['value' => 50, 'type' => 'fixed', 'message' => '₹50 off'],
-            'FIRST100' => ['value' => 100, 'type' => 'fixed', 'message' => '₹100 off'],
-            'FREEDEL' => ['value' => 40, 'type' => 'fixed', 'message' => 'Free Delivery'],
-        ];
-        
-        if (isset($validCoupons[$coupon])) {
-            $couponData = $validCoupons[$coupon];
-            
-            // Store coupon in session
-            Session::put('applied_coupon', [
-                'code' => $coupon,
-                'value' => $couponData['value'],
-                'type' => $couponData['type'],
-                'message' => $couponData['message']
+        try {
+            $request->validate([
+                'coupon' => 'required|string'
             ]);
             
-            // Recalculate totals with new coupon
-            $cart = Session::get('cart', []);
-            $subtotal = 0;
-            foreach ($cart as $item) {
-                $subtotal += $item['price'] * $item['quantity'];
-            }
+            $coupon = strtoupper($request->coupon);
             
-            if ($couponData['type'] == 'percentage') {
-                $discount = round($subtotal * $couponData['value'] / 100);
-            } else {
-                $discount = $couponData['value'];
+            $validCoupons = [
+                'SAVE10' => ['value' => 10, 'type' => 'percentage', 'message' => '10% off'],
+                'SAVE20' => ['value' => 20, 'type' => 'percentage', 'message' => '20% off'],
+                'FLAT500' => ['value' => 500, 'type' => 'fixed', 'message' => '₹500 off'],
+                'WELCOME50' => ['value' => 50, 'type' => 'fixed', 'message' => '₹50 off'],
+                'FIRST100' => ['value' => 100, 'type' => 'fixed', 'message' => '₹100 off'],
+                'FREEDEL' => ['value' => 40, 'type' => 'fixed', 'message' => 'Free Delivery'],
+            ];
+            
+            if (isset($validCoupons[$coupon])) {
+                $couponData = $validCoupons[$coupon];
+                
+                Session::put('applied_coupon', [
+                    'code' => $coupon,
+                    'value' => $couponData['value'],
+                    'type' => $couponData['type'],
+                    'message' => $couponData['message']
+                ]);
+                Session::save();
+                
+                $cart = Session::get('cart', []);
+                $subtotal = 0;
+                foreach ($cart as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                
+                if ($couponData['type'] == 'percentage') {
+                    $discount = round($subtotal * $couponData['value'] / 100);
+                } else {
+                    $discount = $couponData['value'];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Coupon applied successfully!',
+                    'discount' => $discount,
+                    'discount_formatted' => '₹' . number_format($discount),
+                    'coupon_code' => $coupon,
+                    'coupon_message' => $couponData['message']
+                ]);
             }
             
             return response()->json([
-                'success' => true,
-                'message' => 'Coupon applied successfully!',
-                'discount' => $discount,
-                'discount_formatted' => '₹' . number_format($discount),
-                'coupon_code' => $coupon,
-                'coupon_message' => $couponData['message']
-            ]);
+                'success' => false,
+                'message' => 'Invalid coupon code!'
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in apply coupon: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error applying coupon'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid coupon code!'
-        ], 422);
     }
     
     /**
@@ -393,28 +480,37 @@ class CartController extends Controller
      */
     public function removeCoupon(Request $request)
     {
-        Session::forget('applied_coupon');
-        
-        // Recalculate totals
-        $cart = Session::get('cart', []);
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+        try {
+            Session::forget('applied_coupon');
+            Session::save();
+            
+            $cart = Session::get('cart', []);
+            $subtotal = 0;
+            foreach ($cart as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
+            
+            $deliveryCharge = $subtotal < 499 ? 40 : 0;
+            $tax = round($subtotal * 0.05);
+            $discount = round($subtotal * 0.1);
+            $total = $subtotal + $deliveryCharge + $tax - $discount;
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Coupon removed!',
+                'discount' => $discount,
+                'discount_formatted' => '₹' . number_format($discount),
+                'total' => $total,
+                'total_formatted' => '₹' . number_format($total)
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in remove coupon: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing coupon'
+            ], 500);
         }
-        
-        $deliveryCharge = $subtotal < 499 ? 40 : 0;
-        $tax = round($subtotal * 0.05);
-        $discount = round($subtotal * 0.1); // Default discount
-        $total = $subtotal + $deliveryCharge + $tax - $discount;
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Coupon removed!',
-            'discount' => $discount,
-            'discount_formatted' => '₹' . number_format($discount),
-            'total' => $total,
-            'total_formatted' => '₹' . number_format($total)
-        ]);
     }
     
     /**
@@ -422,15 +518,25 @@ class CartController extends Controller
      */
     public function clear()
     {
-        Session::forget('cart');
-        Session::forget('saved_for_later');
-        Session::forget('applied_coupon');
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Cart cleared!',
-            'cart_count' => 0
-        ]);
+        try {
+            Session::forget('cart');
+            Session::forget('saved_for_later');
+            Session::forget('applied_coupon');
+            Session::save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Cart cleared!',
+                'cart_count' => 0
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in clear cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error clearing cart'
+            ], 500);
+        }
     }
     
     /**
@@ -438,20 +544,30 @@ class CartController extends Controller
      */
     public function getCount()
     {
-        $cart = Session::get('cart', []);
-        $count = array_sum(array_column($cart, 'quantity'));
-        
-        return response()->json([
-            'count' => $count
-        ]);
+        try {
+            $cart = Session::get('cart', []);
+            $count = 0;
+            foreach ($cart as $item) {
+                $count += $item['quantity'];
+            }
+            
+            return response()->json([
+                'count' => $count
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in get count: ' . $e->getMessage());
+            return response()->json([
+                'count' => 0
+            ]);
+        }
     }
     
     /**
-     * Get suggested products based on cart
+     * Get suggested products
      */
     private function getSuggestedProducts($cart)
     {
-        // Sample suggested products
         $allProducts = [
             [
                 'id' => 301,
@@ -501,62 +617,8 @@ class CartController extends Controller
                 'reviews' => 3456,
                 'slug' => 'power-bank'
             ],
-            [
-                'id' => 305,
-                'name' => 'Screen Guard',
-                'brand' => 'GadgetShield',
-                'price' => 199,
-                'original_price' => 399,
-                'discount' => 50,
-                'image' => 'https://picsum.photos/200/200?random=305',
-                'rating' => 4.0,
-                'reviews' => 890,
-                'slug' => 'screen-guard'
-            ],
-            [
-                'id' => 306,
-                'name' => 'Mobile Stand',
-                'brand' => 'Portronics',
-                'price' => 299,
-                'original_price' => 599,
-                'discount' => 50,
-                'image' => 'https://picsum.photos/200/200?random=306',
-                'rating' => 4.2,
-                'reviews' => 1678,
-                'slug' => 'mobile-stand'
-            ],
-            [
-                'id' => 307,
-                'name' => 'Bluetooth Speaker',
-                'brand' => 'JBL',
-                'price' => 1999,
-                'original_price' => 2999,
-                'discount' => 33,
-                'image' => 'https://picsum.photos/200/200?random=307',
-                'rating' => 4.6,
-                'reviews' => 7890,
-                'slug' => 'bluetooth-speaker'
-            ],
-            [
-                'id' => 308,
-                'name' => 'HDMI Cable 1.5m',
-                'brand' => 'Amazon Basics',
-                'price' => 299,
-                'original_price' => 499,
-                'discount' => 40,
-                'image' => 'https://picsum.photos/200/200?random=308',
-                'rating' => 4.3,
-                'reviews' => 2341,
-                'slug' => 'hdmi-cable'
-            ],
         ];
         
-        // If cart is empty, return random products
-        if (empty($cart)) {
-            return array_slice($allProducts, 0, 4);
-        }
-        
-        // Return first 4 products as suggestions
         return array_slice($allProducts, 0, 4);
     }
 }
