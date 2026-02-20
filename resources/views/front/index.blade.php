@@ -11,21 +11,21 @@
             <!-- Slide 1 -->
             <div class="slider-item">
                 <div class="slide-bg" style="background: linear-gradient(45deg, #667eea, #764ba2);">
-                    <img src="{{ asset('images/banner/banner1.webp') }}" alt="Banner 1" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+1';">
+                    <img src="{{ asset('images/banner/1.png') }}" alt="Banner 1" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+1';">
                 </div>
             </div>
             
             <!-- Slide 2 -->
             <div class="slider-item">
                 <div class="slide-bg" style="background: linear-gradient(45deg, #667eea, #764ba2);">
-                    <img src="{{ asset('images/banner/banner2.webp') }}" alt="Banner 2" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+2';">
+                    <img src="{{ asset('images/banner/2.png') }}" alt="Banner 2" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+2';">
                 </div>
             </div>
             
             <!-- Slide 3 -->
             <div class="slider-item">
                 <div class="slide-bg" style="background: linear-gradient(45deg, #667eea, #764ba2);">
-                    <img src="{{ asset('images/banner/banner3.webp') }}" alt="Banner 3" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+3';">
+                    <img src="{{ asset('images/banner/3.png') }}" alt="Banner 3" class="img-fluid" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/ffffff/333333?text=Banner+3';">
                 </div>
             </div>
         </div>
@@ -64,7 +64,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=101" alt="Fashion">
+                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Fashion">
                             </div>
                             <div class="category-name">
                                 <span>Fashion</span>
@@ -78,7 +78,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=102" alt="Travel">
+                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Travel">
                             </div>
                             <div class="category-name">
                                 <span>Travel</span>
@@ -92,7 +92,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=103" alt="Electronics">
+                                <img src="{{ asset('images/category-slider/3.png') }}" alt="Electronics">
                             </div>
                             <div class="category-name">
                                 <span>Electronics</span>
@@ -106,7 +106,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=104" alt="Home & Kitchen">
+                                <img src="{{ asset('images/category-slider/4.png') }}" alt="Home & Kitchen">
                             </div>
                             <div class="category-name">
                                 <span>Home & kitchen</span>
@@ -120,7 +120,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=105" alt="Auto Accessories">
+                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Auto Accessories">
                             </div>
                             <div class="category-name">
                                 <span>Auto Acc</span>
@@ -134,7 +134,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=106" alt="Toys & Baby">
+                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Toys & Baby">
                             </div>
                             <div class="category-name">
                                 <span>Toys, Baby...</span>
@@ -148,7 +148,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=107" alt="GenZ Trends">
+                                <img src="{{ asset('images/category-slider/3.png') }}" alt="GenZ Trends">
                             </div>
                             <div class="category-name">
                                 <span>GenZ Trends</span>
@@ -162,7 +162,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=108" alt="Next Gen">
+                                <img src="{{ asset('images/category-slider/4.png') }}" alt="Next Gen">
                             </div>
                             <div class="category-name">
                                 <span>Next Gen</span>
@@ -176,7 +176,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=109" alt="Sports">
+                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Sports">
                             </div>
                             <div class="category-name">
                                 <span>Sports</span>
@@ -190,7 +190,7 @@
                     <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=110" alt="Books">
+                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Books">
                             </div>
                             <div class="category-name">
                                 <span>Books</span>

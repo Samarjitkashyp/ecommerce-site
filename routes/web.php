@@ -24,3 +24,8 @@ Route::get('/services', function () {
 Route::get('/contact', function () {
     return view('front.contact');
 })->name('contact');
+
+// Category page route
+Route::get('/category/{category}', function($category) {
+    return view('front.category');
+})->name('category');

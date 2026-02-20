@@ -214,7 +214,7 @@
 
                 <!-- Nav Links -->
                 <div class="nav-links">
-                    <a href="#">MX Player</a>
+                    <a href="{{ route('category', 'fashion') }}">MX Player</a>
                     <a href="#">Sell</a>
                     <a href="#">Bestsellers</a>
                     <a href="#">Mobiles</a>
