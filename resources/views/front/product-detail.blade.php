@@ -329,7 +329,7 @@
                     
                     <!-- Secure Payment -->
                     <div class="secure-payment">
-                        <img src="https://via.placeholder.com/200x50/ffffff/333333?text=Secure+Payment" alt="Secure Payment" class="img-fluid">
+                        <img src="{{ asset('images/banner/svgviewer-png-output.png') }}" alt="Secure Payment" class="img-fluid">
                     </div>
                 </div>
             </div>

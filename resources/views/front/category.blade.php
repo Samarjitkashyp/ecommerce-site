@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Category - ' . request()->segment(1) ?? 'Products')
+@section('title', $categoryInfo['title'] ?? 'Category - Products')
 
 @section('content')
 <!-- Breadcrumb Section -->
@@ -10,7 +10,7 @@
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none">Home</a></li>
                 <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Products</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Fashion</li>
+                <li class="breadcrumb-item active" aria-current="page">{{ $categoryInfo['name'] ?? 'Category' }}</li>
             </ol>
         </nav>
     </div>
@@ -260,7 +260,7 @@
             <div class="col-lg-9">
                 <!-- Page Header -->
                 <div class="category-header d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Men's Fashion (12,456 Products)</h4>
+                    <h4 class="mb-0">{{ $categoryInfo['title'] ?? 'Category' }} ({{ number_format($categoryInfo['products_count'] ?? 0) }} Products)</h4>
                     
                     <!-- Sort By Dropdown -->
                     <div class="sort-by d-flex align-items-center">
@@ -279,12 +279,20 @@
                 <!-- Products Grid -->
                 <div class="products-grid">
                     <div class="row g-3">
-                        <!-- Product 1 -->
+                        @forelse($products as $product)
+                        <!-- Product -->
                         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
                             <div class="modern-product-card">
-                                <div class="product-badge">BESTSELLER</div>
+                                @if(isset($product['badge']))
+                                <div class="product-badge 
+                                    @if($product['badge'] == 'TRENDING') trending 
+                                    @elseif($product['badge'] == 'NEW') new 
+                                    @else bestseller @endif">
+                                    {{ $product['badge'] }}
+                                </div>
+                                @endif
                                 <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=201" alt="Product 1">
+                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
                                     <div class="product-actions">
                                         <button class="action-btn wishlist" title="Add to Wishlist">
                                             <i class="far fa-heart"></i>
@@ -295,293 +303,40 @@
                                     </div>
                                 </div>
                                 <div class="product-info">
-                                    <div class="brand-name">Jack & Jones</div>
-                                    <h3 class="product-title">Men's Printed Round Neck T-Shirt</h3>
+                                    <div class="brand-name">{{ $product['brand'] }}</div>
+                                    <a href="{{ route('product.detail', ['id' => $product['id'], 'slug' => $product['slug'] ?? Str::slug($product['name'])]) }}" class="text-decoration-none">
+                                        <h3 class="product-title">{{ $product['name'] }}</h3>
+                                    </a>
                                     <div class="price-section">
-                                        <span class="current-price">₹799</span>
-                                        <span class="original-price">₹1,999</span>
-                                        <span class="discount">60% off</span>
+                                        <span class="current-price">₹{{ number_format($product['price']) }}</span>
+                                        <span class="original-price">₹{{ number_format($product['original_price']) }}</span>
+                                        <span class="discount">{{ $product['discount'] }}% off</span>
                                     </div>
                                     <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                        <span class="rating-count">(3.2k)</span>
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= floor($product['rating']))
+                                                <i class="fas fa-star text-warning"></i>
+                                            @elseif($i == ceil($product['rating']) && $product['rating'] - floor($product['rating']) >= 0.5)
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            @else
+                                                <i class="far fa-star text-warning"></i>
+                                            @endif
+                                        @endfor
+                                        <span class="rating-count">({{ number_format($product['reviews']) }})</span>
                                     </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="1">
+                                    <button class="add-to-cart-btn mt-3" data-id="{{ $product['id'] }}">
                                         <i class="fas fa-shopping-cart"></i> Add to Cart
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Product 2 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge trending">TRENDING</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=202" alt="Product 2">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Puma</div>
-                                    <h3 class="product-title">Men's Running Shoes | White/Black</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹2,499</span>
-                                        <span class="original-price">₹3,999</span>
-                                        <span class="discount">37% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <span class="rating-count">(5.1k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="2">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
+                        @empty
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                No products found in this category.
                             </div>
                         </div>
-                        
-                        <!-- Product 3 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge new">NEW</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=203" alt="Product 3">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Nike</div>
-                                    <h3 class="product-title">Men's Solid Regular Fit T-Shirt</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹1,799</span>
-                                        <span class="original-price">₹2,499</span>
-                                        <span class="discount">28% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                        <span class="rating-count">(1.8k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="3">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Product 4 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge">BESTSELLER</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=204" alt="Product 4">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Levi's</div>
-                                    <h3 class="product-title">Men's Skinny Fit Jeans</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹2,299</span>
-                                        <span class="original-price">₹3,299</span>
-                                        <span class="discount">30% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="far fa-star text-warning"></i>
-                                        <span class="rating-count">(2.3k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="4">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Product 5 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge trending">TRENDING</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=205" alt="Product 5">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Sony</div>
-                                    <h3 class="product-title">Wireless Bluetooth Headphones</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹3,999</span>
-                                        <span class="original-price">₹5,999</span>
-                                        <span class="discount">33% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                        <span class="rating-count">(4.2k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="5">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Product 6 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge">BESTSELLER</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=206" alt="Product 6">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Fastrack</div>
-                                    <h3 class="product-title">Analog Watch - Men</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹1,995</span>
-                                        <span class="original-price">₹2,995</span>
-                                        <span class="discount">33% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <span class="rating-count">(6.7k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="6">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Product 7 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge new">NEW</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=207" alt="Product 7">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Adidas</div>
-                                    <h3 class="product-title">Men's Sports Shoes</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹2,999</span>
-                                        <span class="original-price">₹4,999</span>
-                                        <span class="discount">40% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star-half-alt text-warning"></i>
-                                        <span class="rating-count">(1.2k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="7">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Product 8 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                            <div class="modern-product-card">
-                                <div class="product-badge trending">TRENDING</div>
-                                <div class="product-image">
-                                    <img src="https://picsum.photos/300/300?random=208" alt="Product 8">
-                                    <div class="product-actions">
-                                        <button class="action-btn wishlist" title="Add to Wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <button class="action-btn quick-view" title="Quick View">
-                                            <i class="far fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <div class="brand-name">Roadster</div>
-                                    <h3 class="product-title">Men's Cotton Jacket</h3>
-                                    <div class="price-section">
-                                        <span class="current-price">₹1,999</span>
-                                        <span class="original-price">₹3,999</span>
-                                        <span class="discount">50% off</span>
-                                    </div>
-                                    <div class="product-rating mt-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <span class="rating-count">(3.4k)</span>
-                                    </div>
-                                    <button class="add-to-cart-btn mt-3" data-id="8">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        @endforelse
                     </div>
                 </div>
                 
@@ -782,7 +537,7 @@
     margin-top: 20px;
 }
 
-/* Product Card (Reusing existing modern-product-card styles) */
+/* Product Card */
 .modern-product-card {
     background: white;
     border-radius: 12px;
@@ -915,6 +670,12 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     height: 36px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.modern-product-card .product-title:hover {
+    color: #febd69;
 }
 
 /* Price Section */
