@@ -22,6 +22,9 @@ class User extends Authenticatable
         'gender',
         'dob',
         'is_active',
+        'is_admin',        // 🟢 IMPORTANT: Ye field honi chahiye
+        'is_super_admin',
+        'role',
         'last_login_at',
         'last_login_ip',
     ];
@@ -35,6 +38,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'dob' => 'date',
         'is_active' => 'boolean',
+        'is_admin' => 'boolean',     // 🟢 IMPORTANT: Boolean cast
+        'is_super_admin' => 'boolean',
         'last_login_at' => 'datetime',
     ];
 

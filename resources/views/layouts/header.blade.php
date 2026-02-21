@@ -1,4 +1,27 @@
 {{-- resources/views/layouts/partials/header.blade.php --}}
+@php
+    // Get dynamic menus from database
+    use App\Models\Menu;
+    
+    $mainMenus = Menu::with('children')
+        ->where('location', 'main')
+        ->whereNull('parent_id')
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->get();
+    
+    $topMenus = Menu::where('location', 'top')
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->get();
+    
+    $allCategories = App\Models\Category::with('children')
+        ->whereNull('parent_id')
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->get();
+@endphp
+
 <header>
     <!-- Main Header - Dark Bar -->
     <div class="main-header">
@@ -22,28 +45,28 @@
                     </div>
                 </div>
 
-                <!-- Search Column - Takes remaining space -->
+                <!-- Search Column -->
                 <div class="col search-col px-2">
                     <div class="search-container">
-                        <!-- Search Category Dropdown -->
+                        <!-- Search Category Dropdown - Dynamic from Categories -->
                         <div class="dropdown search-dropdown">
                             <button class="search-category-btn dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 All
                             </button>
                             <ul class="dropdown-menu search-category-menu" aria-labelledby="categoryDropdown">
                                 <li><h6 class="dropdown-header">All Categories</h6></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'fashion') }}">Fashion</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'electronics') }}">Electronics</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'home-kitchen') }}">Home & Kitchen</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'books') }}">Books</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'sports') }}">Sports</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'toys-baby') }}">Toys & Baby</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'auto-accessories') }}">Auto Accessories</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'travel') }}">Travel</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'genz-trends') }}">GenZ Trends</a></li>
-                                <li><a class="dropdown-item" href="{{ route('category', 'next-gen') }}">Next Gen</a></li>
+                                @foreach($allCategories as $category)
+                                    <li>
+                                        <a class="dropdown-item" href="{{ $category->url }}">
+                                            @if($category->icon)
+                                                <i class="{{ $category->icon }} me-2"></i>
+                                            @endif
+                                            {{ $category->name }}
+                                        </a>
+                                    </li>
+                                @endforeach
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">All Departments</a></li>
+                                <li><a class="dropdown-item" href="{{ route('category', 'all') }}">All Departments</a></li>
                             </ul>
                         </div>
                         <input type="text" class="search-input" id="searchInput" placeholder="Search Amazon.in">
@@ -74,9 +97,7 @@
                             </ul>
                         </div>
 
-                        <!-- ============================================
-                             UPDATED ACCOUNT DROPDOWN WITH AUTH
-                             ============================================ -->
+                        <!-- Account Dropdown -->
                         <div class="dropdown account-dropdown">
                             <button class="account-btn dropdown-toggle" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="account-text">
@@ -228,64 +249,100 @@
     </div>
 
     <!-- Secondary Navigation -->
-    <div class="secondary-nav">
-        <div class="container-fluid px-3">
-            <div class="d-flex align-items-center">
-                <!-- All Menu Dropdown -->
-                <div class="dropdown all-menu-dropdown">
-                    <button class="all-menu-btn dropdown-toggle" type="button" id="allMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-bars"></i>
-                        <span>All</span>
-                    </button>
-                    <ul class="dropdown-menu all-menu-list" aria-labelledby="allMenuDropdown">
-                        <li><h6 class="dropdown-header">Trending</h6></li>
-                        <li><a class="dropdown-item" href="#">Bestsellers</a></li>
-                        <li><a class="dropdown-item" href="#">New Releases</a></li>
-                        <li><a class="dropdown-item" href="#">Movers and Shakers</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Shop by Category</h6></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'fashion') }}">Fashion</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'electronics') }}">Electronics</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'home-kitchen') }}">Home & Kitchen</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'books') }}">Books</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'sports') }}">Sports</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'toys-baby') }}">Toys & Baby</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'auto-accessories') }}">Auto Accessories</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'travel') }}">Travel</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'genz-trends') }}">GenZ Trends</a></li>
-                        <li><a class="dropdown-item" href="{{ route('category', 'next-gen') }}">Next Gen</a></li>
-                    </ul>
+{{-- Secondary Navigation with Dynamic Menus --}}
+<div class="secondary-nav">
+    <div class="container-fluid px-3">
+        <div class="nav-wrapper">
+            <!-- All Menu Dropdown -->
+            <div class="all-menu-dropdown">
+                <button class="all-menu-btn">
+                    <i class="fas fa-bars"></i>
+                    <span>All</span>
+                </button>
+                
+                <div class="all-menu-list">
+                    <h6 class="dropdown-header">Trending</h6>
+                    <a class="dropdown-item" href="#"><i class="fas fa-fire"></i> Best Sellers</a>
+                    <a class="dropdown-item" href="#"><i class="fas fa-star"></i> New Releases</a>
+                    <a class="dropdown-item" href="#"><i class="fas fa-chart-line"></i> Movers & Shakers</a>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <h6 class="dropdown-header">Shop by Category</h6>
+                    @foreach($allCategories as $category)
+                    <a class="dropdown-item" href="{{ $category->url }}">
+                        @if($category->icon)
+                            <i class="{{ $category->icon }}"></i>
+                        @else
+                            <i class="fas fa-tag"></i>
+                        @endif
+                        {{ $category->name }}
+                    </a>
+                    @endforeach
                 </div>
+            </div>
 
-                <!-- Nav Links -->
-                <div class="nav-links">
-                    <a href="#">MX Player</a>
-                    <a href="#">Sell</a>
-                    <a href="#">Bestsellers</a>
-                    <a href="{{ route('category', 'electronics') }}">Mobiles</a>
-                    <a href="#">Today's Deals</a>
-                    <a href="#">Customer Service</a>
-                    <a href="#">New Releases</a>
-                    <a href="#">Prime</a>
-                    <a href="{{ route('category', 'fashion') }}">Fashion</a>
-                    <a href="#">Amazon Pay</a>
-                </div>
+            <!-- Main Navigation Links - Dynamic from Admin Panel -->
+            <div class="nav-links">
+                @foreach($mainMenus as $menu)
+                    @if($menu->children->count() > 0)
+                        <div class="nav-item dropdown">
+                            <a href="#" class="dropdown-toggle">
+                                @if($menu->icon)
+                                    <i class="{{ $menu->icon }}"></i>
+                                @endif
+                                {{ $menu->name }}
+                            </a>
+                            <div class="dropdown-menu">
+                                @foreach($menu->children as $child)
+                                    <a class="dropdown-item" href="{{ $child->url }}" target="{{ $child->target }}">
+                                        @if($child->icon)
+                                            <i class="{{ $child->icon }}"></i>
+                                        @endif
+                                        {{ $child->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <div class="nav-item">
+                            <a href="{{ $menu->url }}" target="{{ $menu->target }}">
+                                @if($menu->icon)
+                                    <i class="{{ $menu->icon }}"></i>
+                                @endif
+                                {{ $menu->name }}
+                            </a>
+                        </div>
+                    @endif
+                @endforeach
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Prime Banner -->
-    <div class="prime-banner">
-        <div class="container-fluid px-3">
-            <div class="banner-content">
-                <span class="banner-text">TU MERI MAIN TERA MAIN TERA TU MERI</span>
-                <span class="prime-tag">Join Prime Lite at ₹67/month*</span>
-                <span class="asterisk-text">*when paid annually</span>
+    <!-- Prime Banner - Can be made dynamic -->
+    @if($topBanner = \App\Models\Menu::where('location', 'top')->where('type', 'banner')->first())
+        <div class="prime-banner">
+            <div class="container-fluid px-3">
+                <div class="banner-content">
+                    {!! $topBanner->name !!}
+                </div>
             </div>
         </div>
-    </div>
+    @else
+        <div class="prime-banner">
+            <div class="container-fluid px-3">
+                <div class="banner-content">
+                    <span class="banner-text">TU MERI MAIN TERA MAIN TERA TU MERI</span>
+                    <span class="prime-tag">Join Prime Lite at ₹67/month*</span>
+                    <span class="asterisk-text">*when paid annually</span>
+                </div>
+            </div>
+        </div>
+    @endif
 </header>
 
+<!-- Mobile Bottom Navigation -->
 <!-- Mobile Bottom Navigation -->
 <div class="mobile-nav-bottom">
     <a href="{{ url('/') }}" class="mobile-nav-item">

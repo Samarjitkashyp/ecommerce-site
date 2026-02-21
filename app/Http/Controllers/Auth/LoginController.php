@@ -12,6 +12,15 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
+        // Agar pehle se logged in hai to redirect
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->is_admin) {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('account.dashboard');
+        }
+        
         return view('auth.login');
     }
 
@@ -36,6 +45,16 @@ class LoginController extends Controller
                 // Regenerate session
                 $request->session()->regenerate();
 
+                // 🟢 IMPORTANT FIX: Check if user is admin
+                if ($user->is_admin) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Admin login successful!',
+                        'redirect' => route('admin.dashboard')
+                    ]);
+                }
+
+                // Regular user redirect
                 return response()->json([
                     'success' => true,
                     'message' => 'Login successful!',
@@ -48,6 +67,12 @@ class LoginController extends Controller
                 'message' => 'Invalid email or password.'
             ], 401);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Login error: ' . $e->getMessage());
             return response()->json([
