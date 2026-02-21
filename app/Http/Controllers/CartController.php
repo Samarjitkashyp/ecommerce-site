@@ -64,11 +64,8 @@ class CartController extends Controller
     }
     
     /**
-     * Add item to cart - COMPLETELY FIXED WITH HARDCODED URL
+     * Add item to cart - COMPLETELY FIXED
      */
-    /**
- * Add item to cart - COMPLETELY FIXED
- */
     public function add(Request $request)
     {
         try {
@@ -82,7 +79,7 @@ class CartController extends Controller
                 'price' => 'required|numeric',
                 'brand' => 'required|string',
                 'image' => 'required|string',
-                'quantity' => 'required|integer|min:1'
+                'quantity' => 'required|integer|min:1|max:10'
             ]);
             
             $cart = Session::get('cart', []);
@@ -91,6 +88,10 @@ class CartController extends Controller
             // Check if product already in cart
             if (isset($cart[$productId])) {
                 $cart[$productId]['quantity'] += (int)$request->quantity;
+                // Ensure quantity doesn't exceed max
+                if ($cart[$productId]['quantity'] > 10) {
+                    $cart[$productId]['quantity'] = 10;
+                }
             } else {
                 $cart[$productId] = [
                     'id' => $productId,
@@ -101,7 +102,7 @@ class CartController extends Controller
                     'discount' => $request->discount ?? 0,
                     'image' => $request->image,
                     'quantity' => (int)$request->quantity,
-                    'max_quantity' => $request->max_quantity ?? 10,
+                    'max_quantity' => 10,
                     'selected_size' => $request->selected_size ?? null,
                     'selected_color' => $request->selected_color ?? null,
                     'in_stock' => true,
@@ -112,6 +113,7 @@ class CartController extends Controller
             Session::put('cart', $cart);
             Session::save();
             
+            // Calculate total cart count
             $cartCount = 0;
             foreach ($cart as $item) {
                 $cartCount += $item['quantity'];
@@ -119,13 +121,12 @@ class CartController extends Controller
             
             Log::info('Cart updated successfully. New count: ' . $cartCount);
             
-            // FIXED: Use URL helper instead of route() - yeh guaranteed kaam karega
             return response()->json([
                 'success' => true,
                 'message' => 'Item added to cart successfully!',
                 'cart_count' => $cartCount,
                 'cart' => $cart,
-                'redirect' => url('/cart') // URL helper use karo
+                'redirect' => route('cart.index')
             ]);
             
         } catch (\Illuminate\Validation\ValidationException $e) {

@@ -265,10 +265,24 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Place Order Button -->
-                                <button class="btn btn-primary w-100 py-3 fw-bold" id="placeOrderBtn" {{ empty($cart) ? 'disabled' : '' }}>
+                                <!-- ============================================
+                                     PLACE ORDER BUTTON - FIXED
+                                     ============================================ -->
+                                @if(!empty($cart))
+                                    @if(auth()->check())
+                                    <a href="{{ route('checkout') }}" class="btn btn-primary w-100 py-3 fw-bold text-decoration-none" style="display: inline-block; text-align: center;">
+                                        <i class="fas fa-bolt"></i> PROCEED TO CHECKOUT
+                                    </a>
+                                    @else
+                                    <a href="{{ route('login') }}?redirect={{ urlencode(route('checkout')) }}" class="btn btn-primary w-100 py-3 fw-bold text-decoration-none" style="display: inline-block; text-align: center;">
+                                        <i class="fas fa-sign-in-alt"></i> LOGIN TO CHECKOUT
+                                    </a>
+                                    @endif
+                                @else
+                                <button class="btn btn-primary w-100 py-3 fw-bold" disabled>
                                     <i class="fas fa-bolt"></i> PLACE ORDER
                                 </button>
+                                @endif
                                 
                                 <!-- Secure Payment Info -->
                                 <div class="secure-payment text-center mt-3 small text-muted">
@@ -557,6 +571,9 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    console.log('✅ Cart page loaded');
+    console.log('👤 User logged in: {{ auth()->check() ? 'Yes' : 'No' }}');
+    
     // Initialize suggested products slider
     if ($('.suggested-slider').length) {
         $('.suggested-slider').owlCarousel({
@@ -581,7 +598,7 @@ $(document).ready(function() {
         let id = $(this).data('id');
         let input = $(this).siblings('.item-qty');
         let currentVal = parseInt(input.val());
-        let maxVal = parseInt(input.attr('max'));
+        let maxVal = parseInt(input.attr('max')) || 10;
         
         if (currentVal < maxVal) {
             updateQuantity(id, currentVal + 1);
@@ -641,58 +658,42 @@ $(document).ready(function() {
     // Remove item
     $('.remove-item').on('click', function() {
         let id = $(this).data('id');
-        let itemElement = $(`#cart-item-${id}`);
         
-        $.ajax({
-            url: '{{ route("cart.remove") }}',
-            type: 'POST',
-            data: {
-                id: id,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Remove item with animation
-                    itemElement.fadeOut(300, function() {
-                        $(this).remove();
-                        
-                        if (response.cart_empty) {
-                            // Show empty cart message
-                            $('#cartItemsContainer').html(`
-                                <div class="empty-cart text-center py-5">
-                                    <div class="empty-cart-icon mb-3">
-                                        <i class="fas fa-shopping-cart fa-4x text-muted"></i>
-                                    </div>
-                                    <h5>Your cart is empty!</h5>
-                                    <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
-                                    <a href="{{ url('/') }}" class="btn btn-primary mt-3">
-                                        <i class="fas fa-home"></i> Continue Shopping
-                                    </a>
-                                </div>
-                            `);
-                            $('#placeOrderBtn').prop('disabled', true);
-                        }
-                        
-                        // Update cart totals
-                        $('#subtotalDisplay').html(response.subtotal_formatted);
-                        $('#discountDisplay').html('− ' + response.discount_formatted);
-                        $('#deliveryDisplay').html(response.delivery_charge === 0 ? '<span class="text-success">Free</span>' : '₹' + response.delivery_charge.toLocaleString());
-                        $('#taxDisplay').html(response.tax_formatted);
-                        $('#totalDisplay').html(response.total_formatted);
-                        $('#cartCountHeader').html(`(${response.cart_count} items)`);
-                        
-                        // Update cart count in header
-                        $('.cart-count').text(response.cart_count);
-                        $('.mobile-cart-count').text(response.cart_count);
-                        
-                        showNotification(response.message, 'success');
-                    });
+        if (confirm('Remove this item from cart?')) {
+            $.ajax({
+                url: '{{ route("cart.remove") }}',
+                type: 'POST',
+                data: {
+                    id: id,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`#cart-item-${id}`).fadeOut(300, function() {
+                            $(this).remove();
+                            
+                            if (response.cart_empty) {
+                                location.reload();
+                            } else {
+                                // Update cart totals
+                                $('#subtotalDisplay').html(response.subtotal_formatted);
+                                $('#discountDisplay').html('− ' + response.discount_formatted);
+                                $('#deliveryDisplay').html(response.delivery_charge === 0 ? '<span class="text-success">Free</span>' : '₹' + response.delivery_charge.toLocaleString());
+                                $('#taxDisplay').html(response.tax_formatted);
+                                $('#totalDisplay').html(response.total_formatted);
+                                $('#cartCountHeader').html(`(${response.cart_count} items)`);
+                                
+                                // Update cart count
+                                $('.cart-count').text(response.cart_count);
+                                $('.mobile-cart-count').text(response.cart_count);
+                            }
+                            
+                            showNotification(response.message, 'success');
+                        });
+                    }
                 }
-            },
-            error: function(xhr) {
-                showNotification('Error removing item', 'error');
-            }
-        });
+            });
+        }
     });
     
     // Save for later
@@ -708,7 +709,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    location.reload(); // Reload to show saved items section
+                    location.reload();
                 }
             }
         });
@@ -751,27 +752,16 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    $('#couponMessage').html(`
-                        <span class="text-success">
-                            <i class="fas fa-check-circle"></i> ${response.message}
-                        </span>
-                    `);
-                    
-                    // Update discount and total
+                    $('#couponMessage').html('<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>');
                     $('#discountDisplay').html('− ' + response.discount_formatted);
                     
-                    // Reload to show applied coupon
                     setTimeout(function() {
                         location.reload();
                     }, 1500);
                 }
             },
             error: function(xhr) {
-                $('#couponMessage').html(`
-                    <span class="text-danger">
-                        <i class="fas fa-exclamation-circle"></i> ${xhr.responseJSON.message}
-                    </span>
-                `);
+                $('#couponMessage').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + xhr.responseJSON.message + '</span>');
             }
         });
     });
@@ -810,7 +800,7 @@ $(document).ready(function() {
         }
     });
     
-    // Add suggested product to cart
+    // Add suggested product
     $('.add-suggested').on('click', function() {
         let btn = $(this);
         let id = btn.data('id');
@@ -836,7 +826,6 @@ $(document).ready(function() {
                     btn.html('<i class="fas fa-check"></i> Added');
                     btn.removeClass('btn-outline-primary').addClass('btn-success');
                     
-                    // Update cart count
                     $('.cart-count').text(response.cart_count);
                     $('.mobile-cart-count').text(response.cart_count);
                     
@@ -851,13 +840,8 @@ $(document).ready(function() {
         });
     });
     
-    // Place order
-    $('#placeOrderBtn').on('click', function() {
-        window.location.href = '{{ route("checkout") }}';
-    });
-    
     // Notification function
-    function showNotification(message, type = 'info') {
+    function showNotification(message, type) {
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
         } else {
