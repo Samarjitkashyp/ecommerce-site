@@ -16,6 +16,9 @@
                 @if($menu->is_active)
                     <span class="menu-badge active">Active</span>
                 @endif
+                @if($menu->children->count() > 0)
+                    <span class="menu-badge child-count">{{ $menu->children->count() }} children</span>
+                @endif
             </div>
             <div class="menu-url">
                 @if($menu->type == 'category' && $menu->category)
@@ -33,7 +36,7 @@
                 <i class="fas fa-edit"></i>
             </a>
             
-            <!-- 🟢 DELETE BUTTON - WORKING -->
+            <!-- 🟢 DELETE BUTTON - Works with children -->
             <button class="btn btn-sm btn-outline-danger delete-menu" 
                     data-url="{{ route('admin.menus.destroy', $menu->id) }}"
                     data-name="{{ $menu->name }}"

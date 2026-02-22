@@ -172,26 +172,47 @@ class MenuController extends AdminController
     }
 
     /**
-     * DELETE MENU
+     * 🟢 FIXED: DELETE MENU WITH CHILDREN
+     * Yeh method parent menu ke saath saare child menus ko bhi delete karega
      */
     public function destroy(Menu $menu)
     {
         try {
-            // Check if menu has children
-            if ($menu->children()->count() > 0) {
-                return $this->sendError('Cannot delete menu with child items. Delete children first.');
-            }
-
+            $menuId = $menu->id;
             $menuName = $menu->name;
+            
+            // Count children before deleting
+            $childrenCount = $menu->children()->count();
+            
+            // 🟢 IMPORTANT: Pehle saare child menus delete karo
+            if ($childrenCount > 0) {
+                foreach ($menu->children as $child) {
+                    $child->delete();
+                }
+            }
+            
+            // Phir parent menu delete karo
             $menu->delete();
 
-            Log::info('Menu deleted', ['menu_name' => $menuName]);
+            Log::info('Menu deleted with children', [
+                'menu_id' => $menuId, 
+                'menu_name' => $menuName,
+                'children_deleted' => $childrenCount
+            ]);
 
-            return $this->sendSuccess('Menu deleted successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu and ' . $childrenCount . ' child item(s) deleted successfully!',
+                'id' => $menuId
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Menu deletion error: ' . $e->getMessage());
-            return $this->sendError('Failed to delete menu', [], 500);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete menu: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -262,5 +283,24 @@ class MenuController extends AdminController
             Log::error('Menu duplicate error: ' . $e->getMessage());
             return $this->sendError('Failed to duplicate menu', [], 500);
         }
+    }
+
+    /**
+     * SHOW MENU LOCATIONS PAGE
+     */
+    public function locations()
+    {
+        $locations = Menu::LOCATIONS;
+        $menusByLocation = [];
+        
+        foreach (array_keys($locations) as $location) {
+            $menusByLocation[$location] = Menu::with('children')
+                ->where('location', $location)
+                ->whereNull('parent_id')
+                ->orderBy('sort_order')
+                ->get();
+        }
+        
+        return view('admin.menus.locations', compact('locations', 'menusByLocation'));
     }
 }
