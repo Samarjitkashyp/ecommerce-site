@@ -29,14 +29,26 @@
         </div>
         
         <div class="menu-actions">
-            <a href="{{ route('admin.menus.edit', $menu->id) }}" class="btn btn-sm btn-outline-primary">
+            <a href="{{ route('admin.menus.edit', $menu->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="fas fa-edit"></i>
             </a>
+            
+            <!-- 🟢 DELETE BUTTON - WORKING -->
             <button class="btn btn-sm btn-outline-danger delete-menu" 
                     data-url="{{ route('admin.menus.destroy', $menu->id) }}"
-                    data-name="{{ $menu->name }}">
+                    data-name="{{ $menu->name }}"
+                    title="Delete">
                 <i class="fas fa-trash"></i>
             </button>
+            
+            @if($menu->children->count() == 0)
+            <button class="btn btn-sm btn-outline-info duplicate-menu" 
+                    data-url="{{ route('admin.menus.duplicate', $menu->id) }}"
+                    data-name="{{ $menu->name }}"
+                    title="Duplicate">
+                <i class="fas fa-copy"></i>
+            </button>
+            @endif
         </div>
     </div>
     
