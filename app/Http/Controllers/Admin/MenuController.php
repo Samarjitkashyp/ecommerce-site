@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class MenuController extends AdminController
 {
@@ -49,6 +50,7 @@ class MenuController extends AdminController
 
     /**
      * STORE NEW MENU
+     * FIXED: URL validation now accepts # for placeholder links
      */
     public function store(Request $request)
     {
@@ -57,7 +59,17 @@ class MenuController extends AdminController
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'type' => 'required|in:link,category,dropdown,route',
-                'url' => 'required_if:type,link|nullable|string',
+                // FIXED: URL can be # for placeholder links
+                'url' => [
+                    'required_if:type,link',
+                    'nullable',
+                    'string',
+                    function ($attribute, $value, $fail) {
+                        if ($value !== null && $value !== '#' && !filter_var($value, FILTER_VALIDATE_URL)) {
+                            $fail('The URL must be a valid URL or # for placeholder.');
+                        }
+                    },
+                ],
                 'route' => 'required_if:type,route|nullable|string',
                 'category_id' => 'required_if:type,category|nullable|exists:categories,id',
                 'parent_id' => 'nullable|exists:menus,id',
@@ -73,7 +85,8 @@ class MenuController extends AdminController
             $menu = Menu::create([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
-                'url' => $validated['url'] ?? null,
+                // FIXED: Allow # as valid URL
+                'url' => $validated['url'] ?? '#',
                 'route' => $validated['route'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
                 'parent_id' => $validated['parent_id'] ?? null,
@@ -119,6 +132,7 @@ class MenuController extends AdminController
 
     /**
      * UPDATE MENU
+     * FIXED: URL validation now accepts # for placeholder links
      */
     public function update(Request $request, Menu $menu)
     {
@@ -127,7 +141,17 @@ class MenuController extends AdminController
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'type' => 'required|in:link,category,dropdown,route',
-                'url' => 'required_if:type,link|nullable|string',
+                // FIXED: URL can be # for placeholder links
+                'url' => [
+                    'required_if:type,link',
+                    'nullable',
+                    'string',
+                    function ($attribute, $value, $fail) {
+                        if ($value !== null && $value !== '#' && !filter_var($value, FILTER_VALIDATE_URL)) {
+                            $fail('The URL must be a valid URL or # for placeholder.');
+                        }
+                    },
+                ],
                 'route' => 'required_if:type,route|nullable|string',
                 'category_id' => 'required_if:type,category|nullable|exists:categories,id',
                 'parent_id' => 'nullable|exists:menus,id',
@@ -143,7 +167,8 @@ class MenuController extends AdminController
             $menu->update([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
-                'url' => $validated['url'] ?? null,
+                // FIXED: Allow # as valid URL
+                'url' => $validated['url'] ?? '#',
                 'route' => $validated['route'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
                 'parent_id' => $validated['parent_id'] ?? null,
@@ -172,8 +197,7 @@ class MenuController extends AdminController
     }
 
     /**
-     * 🟢 FIXED: DELETE MENU WITH CHILDREN
-     * Yeh method parent menu ke saath saare child menus ko bhi delete karega
+     * DELETE MENU WITH CHILDREN
      */
     public function destroy(Menu $menu)
     {
@@ -184,14 +208,14 @@ class MenuController extends AdminController
             // Count children before deleting
             $childrenCount = $menu->children()->count();
             
-            // 🟢 IMPORTANT: Pehle saare child menus delete karo
+            // First delete all child menus
             if ($childrenCount > 0) {
                 foreach ($menu->children as $child) {
                     $child->delete();
                 }
             }
             
-            // Phir parent menu delete karo
+            // Then delete parent menu
             $menu->delete();
 
             Log::info('Menu deleted with children', [

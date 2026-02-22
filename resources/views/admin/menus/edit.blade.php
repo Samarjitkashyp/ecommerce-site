@@ -48,10 +48,13 @@
                     <!-- Dynamic Fields Based on Type -->
                     <div class="col-md-12 mb-3" id="urlField" style="display: {{ $menu->type == 'link' ? 'block' : 'none' }};">
                         <label for="url" class="form-label">Custom URL</label>
-                        <input type="url" class="form-control" id="url" name="url" 
-                               value="{{ old('url', $menu->url) }}" 
-                               placeholder="https://example.com">
-                        <small class="text-muted">Enter full URL including https://</small>
+                        <input type="text" class="form-control" id="url" name="url" 
+                            value="{{ old('url', $menu->url) }}" 
+                            placeholder="https://example.com or # for placeholder">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter full URL including https:// OR use <code>#</code> for placeholder links (no actual URL yet)
+                        </small>
                     </div>
                     
                     <div class="col-md-12 mb-3" id="routeField" style="display: {{ $menu->type == 'route' ? 'block' : 'none' }};">

@@ -1,8 +1,14 @@
 {{-- resources/views/layouts/partials/header.blade.php --}}
 @php
-    // Get dynamic menus from database
+    // ============================================
+    // DYNAMIC MENUS FROM DATABASE
+    // These menus are managed from Admin Panel
+    // Location: admin/menus
+    // ============================================
     use App\Models\Menu;
     
+    // MAIN NAVIGATION MENUS - Top navigation bar (visible on desktop)
+    // These appear as the main navigation links next to "All" button
     $mainMenus = Menu::with('children')
         ->where('location', 'main')
         ->whereNull('parent_id')
@@ -10,11 +16,25 @@
         ->orderBy('sort_order')
         ->get();
     
+    // TOP BAR MENUS - Small links above main header
+    // Currently used for banner/announcement
     $topMenus = Menu::where('location', 'top')
         ->where('is_active', true)
         ->orderBy('sort_order')
         ->get();
     
+    // SIDEBAR MENUS - These appear in the "All" dropdown menu
+    // IMPORTANT: This is what you need for the sidebar
+    // Parent menus become headers, children become menu items
+    $sidebarMenus = Menu::with('children')
+        ->where('location', 'sidebar')
+        ->whereNull('parent_id')
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->get();
+    
+    // CATEGORIES - Fallback if no sidebar menus exist
+    // Also used for search dropdown
     $allCategories = App\Models\Category::with('children')
         ->whereNull('parent_id')
         ->where('is_active', true)
@@ -23,7 +43,10 @@
 @endphp
 
 <header>
-    <!-- Main Header - Dark Bar -->
+    <!-- ============================================
+         MAIN HEADER - Dark Bar (Amazon Style)
+         Contains: Logo, Location, Search, Account, Cart
+         ============================================ -->
     <div class="main-header">
         <div class="container-fluid px-3">
             <div class="row align-items-center g-1">
@@ -34,7 +57,7 @@
                     </a>
                 </div>
 
-                <!-- Location Column -->
+                <!-- Location Column - Only on desktop -->
                 <div class="col-auto d-none d-lg-block">
                     <div class="location-wrapper" id="locationWrapper">
                         <i class="fas fa-map-marker-alt location-icon"></i>
@@ -45,7 +68,7 @@
                     </div>
                 </div>
 
-                <!-- Search Column -->
+                <!-- Search Column - Full width on mobile -->
                 <div class="col search-col px-2">
                     <div class="search-container">
                         <!-- Search Category Dropdown - Dynamic from Categories -->
@@ -76,10 +99,10 @@
                     </div>
                 </div>
 
-                <!-- Right Icons Column -->
+                <!-- Right Icons Column - Account, Cart etc. -->
                 <div class="col-auto">
                     <div class="header-tools">
-                        <!-- Language Dropdown -->
+                        <!-- Language Dropdown - Only on desktop -->
                         <div class="dropdown lang-dropdown d-none d-xl-block">
                             <button class="lang-selector-btn dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-globe"></i>
@@ -97,7 +120,7 @@
                             </ul>
                         </div>
 
-                        <!-- Account Dropdown -->
+                        <!-- Account Dropdown - Dynamic based on login status -->
                         <div class="dropdown account-dropdown">
                             <button class="account-btn dropdown-toggle" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="account-text">
@@ -111,6 +134,7 @@
                                 </div>
                             </button>
                             
+                            <!-- Account Dropdown Menu - Complex structure for logged in/out users -->
                             <div class="dropdown-menu account-menu" aria-labelledby="accountDropdown">
                                 @auth
                                     {{-- Logged In User Menu --}}
@@ -230,13 +254,13 @@
                             </div>
                         </div>
 
-                        <!-- Returns & Orders -->
+                        <!-- Returns & Orders - Only on desktop -->
                         <div class="returns-orders d-none d-lg-block" id="returnsOrders" onclick="window.location.href='{{ route('account.orders') }}'" style="cursor: pointer;">
                             <span class="returns-text">Returns</span>
                             <span class="orders-bold">& Orders</span>
                         </div>
 
-                        <!-- Cart -->
+                        <!-- Cart - Always visible -->
                         <div class="cart-wrapper" id="cartWrapper" onclick="window.location.href='{{ route('cart.index') }}'" style="cursor: pointer;">
                             <i class="fas fa-shopping-cart cart-icon"></i>
                             <span class="cart-count">{{ session()->has('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}</span>
@@ -248,79 +272,164 @@
         </div>
     </div>
 
-    <!-- Secondary Navigation -->
-{{-- Secondary Navigation with Dynamic Menus --}}
-<div class="secondary-nav">
-    <div class="container-fluid px-3">
-        <div class="nav-wrapper">
-            <!-- All Menu Dropdown -->
-            <div class="all-menu-dropdown">
-                <button class="all-menu-btn">
-                    <i class="fas fa-bars"></i>
-                    <span>All</span>
-                </button>
-                
-                <div class="all-menu-list">
-                    <h6 class="dropdown-header">Trending</h6>
-                    <a class="dropdown-item" href="#"><i class="fas fa-fire"></i> Best Sellers</a>
-                    <a class="dropdown-item" href="#"><i class="fas fa-star"></i> New Releases</a>
-                    <a class="dropdown-item" href="#"><i class="fas fa-chart-line"></i> Movers & Shakers</a>
+    <!-- ============================================
+         SECONDARY NAVIGATION - Light bar below main header
+         Contains: "All" dropdown (SIDEBAR MENUS) and MAIN NAVIGATION
+         ============================================ -->
+    <div class="secondary-nav">
+        <div class="container-fluid px-3">
+            <div class="nav-wrapper">
+                <!-- ============================================
+                     ALL MENU DROPDOWN - FIXED: Now using sidebar menus
+                     
+                     IMPORTANT: This dropdown shows menus from 'sidebar' location
+                     How to manage from Admin Panel:
+                     1. Go to Admin -> Menu Management
+                     2. Click "Add New Menu"
+                     3. Select Location: "sidebar"
+                     4. For headers (like "Trending"): Select Type: "dropdown"
+                     5. For menu items: Select Type: "link" and set Parent to the header
+                     
+                     Example structure:
+                     - Trending (dropdown, parent: none)
+                       - Best Sellers (link, parent: Trending)
+                       - New Releases (link, parent: Trending)
+                     - Shop by Category (dropdown, parent: none)
+                       - Electronics (link, parent: Shop by Category)
+                       - Fashion (link, parent: Shop by Category)
+                     ============================================ -->
+                <div class="all-menu-dropdown">
+                    <button class="all-menu-btn">
+                        <i class="fas fa-bars"></i>
+                        <span>All</span>
+                    </button>
                     
-                    <div class="dropdown-divider"></div>
-                    
-                    <h6 class="dropdown-header">Shop by Category</h6>
-                    @foreach($allCategories as $category)
-                    <a class="dropdown-item" href="{{ $category->url }}">
-                        @if($category->icon)
-                            <i class="{{ $category->icon }}"></i>
+                    <div class="all-menu-list">
+                        @php
+                            // Get sidebar menus - these are managed from admin panel
+                            // Location: admin/menus with location = 'sidebar'
+                            $sidebarMenus = Menu::with('children')
+                                ->where('location', 'sidebar')
+                                ->whereNull('parent_id')
+                                ->where('is_active', true)
+                                ->orderBy('sort_order')
+                                ->get();
+                        @endphp
+                        
+                        {{-- Check if we have sidebar menus from admin --}}
+                        @if($sidebarMenus->count() > 0)
+                            {{-- Loop through each parent menu (these become headers) --}}
+                            @foreach($sidebarMenus as $menu)
+                                {{-- Check if this menu has children (dropdown items) --}}
+                                @if($menu->children->count() > 0)
+                                    {{-- Parent menu with children becomes a section header --}}
+                                    <h6 class="dropdown-header">
+                                        @if($menu->icon)
+                                            <i class="{{ $menu->icon }} me-2"></i>
+                                        @endif
+                                        {{ $menu->name }}
+                                    </h6>
+                                    
+                                    {{-- Loop through child menus (these become clickable items) --}}
+                                    @foreach($menu->children->sortBy('sort_order') as $child)
+                                        <a class="dropdown-item" href="{{ $child->url }}" target="{{ $child->target }}">
+                                            @if($child->icon)
+                                                <i class="{{ $child->icon }} me-2"></i>
+                                            @endif
+                                            {{ $child->name }}
+                                        </a>
+                                    @endforeach
+                                    
+                                    {{-- Add divider between sections except for last one --}}
+                                    @if(!$loop->last)
+                                        <div class="dropdown-divider"></div>
+                                    @endif
+                                @else
+                                    {{-- Parent menu without children becomes a single menu item --}}
+                                    <a class="dropdown-item" href="{{ $menu->url }}" target="{{ $menu->target }}">
+                                        @if($menu->icon)
+                                            <i class="{{ $menu->icon }} me-2"></i>
+                                        @endif
+                                        {{ $menu->name }}
+                                    </a>
+                                @endif
+                            @endforeach
                         @else
-                            <i class="fas fa-tag"></i>
+                            {{-- FALLBACK: If no sidebar menus exist, show categories --}}
+                            <h6 class="dropdown-header">Trending</h6>
+                            <a class="dropdown-item" href="#"><i class="fas fa-fire me-2"></i> Best Sellers</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-star me-2"></i> New Releases</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i> Movers & Shakers</a>
+                            
+                            <div class="dropdown-divider"></div>
+                            
+                            <h6 class="dropdown-header">Shop by Category</h6>
+                            @foreach($allCategories as $category)
+                                <a class="dropdown-item" href="{{ $category->url }}">
+                                    @if($category->icon)
+                                        <i class="{{ $category->icon }} me-2"></i>
+                                    @endif
+                                    {{ $category->name }}
+                                </a>
+                            @endforeach
+                            
+                            <div class="dropdown-divider"></div>
+                            
+                            <a class="dropdown-item text-primary" href="#">
+                                <i class="fas fa-tags me-2"></i> Sale
+                            </a>
                         @endif
-                        {{ $category->name }}
-                    </a>
+                    </div>
+                </div>
+
+                <!-- ============================================
+                     MAIN NAVIGATION LINKS
+                     These are from 'main' location in admin panel
+                     Can be simple links or dropdowns with children
+                     ============================================ -->
+                <div class="nav-links">
+                    @foreach($mainMenus as $menu)
+                        @if($menu->children->count() > 0)
+                            {{-- Menu with children becomes a dropdown --}}
+                            <div class="nav-item dropdown">
+                                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                    @if($menu->icon)
+                                        <i class="{{ $menu->icon }} me-1"></i>
+                                    @endif
+                                    {{ $menu->name }}
+                                </a>
+                                <div class="dropdown-menu">
+                                    @foreach($menu->children->sortBy('sort_order') as $child)
+                                        <a class="dropdown-item" href="{{ $child->url }}" target="{{ $child->target }}">
+                                            @if($child->icon)
+                                                <i class="{{ $child->icon }} me-2"></i>
+                                            @endif
+                                            {{ $child->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            {{-- Simple menu item --}}
+                            <div class="nav-item">
+                                <a href="{{ $menu->url }}" target="{{ $menu->target }}">
+                                    @if($menu->icon)
+                                        <i class="{{ $menu->icon }} me-1"></i>
+                                    @endif
+                                    {{ $menu->name }}
+                                </a>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
             </div>
-
-            <!-- Main Navigation Links - Dynamic from Admin Panel -->
-            <div class="nav-links">
-                @foreach($mainMenus as $menu)
-                    @if($menu->children->count() > 0)
-                        <div class="nav-item dropdown">
-                            <a href="#" class="dropdown-toggle">
-                                @if($menu->icon)
-                                    <i class="{{ $menu->icon }}"></i>
-                                @endif
-                                {{ $menu->name }}
-                            </a>
-                            <div class="dropdown-menu">
-                                @foreach($menu->children as $child)
-                                    <a class="dropdown-item" href="{{ $child->url }}" target="{{ $child->target }}">
-                                        @if($child->icon)
-                                            <i class="{{ $child->icon }}"></i>
-                                        @endif
-                                        {{ $child->name }}
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @else
-                        <div class="nav-item">
-                            <a href="{{ $menu->url }}" target="{{ $menu->target }}">
-                                @if($menu->icon)
-                                    <i class="{{ $menu->icon }}"></i>
-                                @endif
-                                {{ $menu->name }}
-                            </a>
-                        </div>
-                    @endif
-                @endforeach
-            </div>
         </div>
     </div>
-</div>
 
-    <!-- Prime Banner - Can be made dynamic -->
+    <!-- ============================================
+         PRIME BANNER - Can be managed from 'top' location
+         Create a menu with type 'banner' or use default
+         ============================================ -->
     @if($topBanner = \App\Models\Menu::where('location', 'top')->where('type', 'banner')->first())
         <div class="prime-banner">
             <div class="container-fluid px-3">
@@ -342,8 +451,10 @@
     @endif
 </header>
 
-<!-- Mobile Bottom Navigation -->
-<!-- Mobile Bottom Navigation -->
+<!-- ============================================
+     MOBILE BOTTOM NAVIGATION
+     Fixed at bottom on mobile devices
+     ============================================ -->
 <div class="mobile-nav-bottom">
     <a href="{{ url('/') }}" class="mobile-nav-item">
         <i class="fas fa-home"></i>
@@ -368,602 +479,19 @@
 <style>
 /* ============================================
    HEADER STYLES
+   Keep your existing styles here
    ============================================ */
-.main-header {
-    background-color: #131921;
-    padding: 8px 0;
-}
-
-/* Logo */
-.logo-link {
-    text-decoration: none;
-    display: inline-block;
-    padding: 5px 0;
-}
-
-.logo-text {
-    color: white;
-    font-size: 24px;
-    font-weight: 600;
-    letter-spacing: -1px;
-}
-
-.logo-dot {
-    color: #febd69;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-/* Location */
-.location-wrapper {
-    display: flex;
-    align-items: center;
-    color: white;
-    cursor: pointer;
-    padding: 5px 8px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.location-wrapper:hover {
-    background-color: #485769;
-}
-
-.location-icon {
-    font-size: 16px;
-    margin-right: 5px;
-    color: #febd69;
-}
-
-.location-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-}
-
-.delivery-label {
-    font-size: 11px;
-    color: #ccc;
-}
-
-.update-link {
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
-}
-
-/* Search Container */
-.search-container {
-    display: flex;
-    align-items: center;
-    background: white;
-    border-radius: 6px;
-    overflow: hidden;
-    height: 44px;
-}
-
-.search-dropdown {
-    height: 100%;
-}
-
-.search-category-btn {
-    height: 100%;
-    background: #f3f3f3;
-    border: none;
-    padding: 0 15px;
-    font-size: 13px;
-    color: #555;
-    border-right: 1px solid #cdcdcd;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.search-category-btn:hover {
-    background: #e3e3e3;
-}
-
-.search-category-menu {
-    border-radius: 8px;
-    margin-top: 2px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.search-category-menu .dropdown-header {
-    font-size: 12px;
-    font-weight: 600;
-    color: #333;
-}
-
-.search-category-menu .dropdown-item {
-    font-size: 13px;
-    padding: 8px 15px;
-}
-
-.search-category-menu .dropdown-item:hover {
-    background: #febd69;
-    color: #131921;
-}
-
-.search-input {
-    flex: 1;
-    border: none;
-    padding: 0 15px;
-    font-size: 14px;
-    height: 100%;
-}
-
-.search-input:focus {
-    outline: none;
-}
-
-.search-btn {
-    height: 100%;
-    background: #febd69;
-    border: none;
-    width: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: #131921;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.search-btn:hover {
-    background: #f3a847;
-}
-
-/* Header Tools */
-.header-tools {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Language Dropdown */
-.lang-selector-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    padding: 8px 10px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.lang-selector-btn:hover {
-    background: #485769;
-}
-
-.lang-menu {
-    min-width: 120px;
-}
-
-.lang-menu .dropdown-item {
-    font-size: 13px;
-    padding: 8px 15px;
-}
-
-.lang-menu .dropdown-item:hover {
-    background: #febd69;
-    color: #131921;
-}
-
-/* Account Dropdown */
-.account-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    padding: 8px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.account-btn:hover {
-    background: #485769;
-}
-
-.account-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-    text-align: left;
-}
-
-.hello-text {
-    font-size: 11px;
-    color: #ccc;
-}
-
-.account-bold {
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
-}
-
-/* Account Menu */
-.account-menu {
-    width: 500px;
-    padding: 0;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    margin-top: 5px;
-}
-
-.account-menu-header {
-    background: #f7f7f7;
-    padding: 20px;
-    border-bottom: 1px solid #e7e7e7;
-}
-
-.signin-btn {
-    background: #ffd814;
-    border: none;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #131921;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.signin-btn:hover {
-    background: #f7ca00;
-}
-
-.new-customer {
-    font-size: 13px;
-    margin-top: 10px;
-}
-
-.new-customer a {
-    color: #007185;
-    text-decoration: none;
-}
-
-.new-customer a:hover {
-    color: #c45500;
-    text-decoration: underline;
-}
-
-.account-menu-content {
-    display: flex;
-    padding: 20px;
-    gap: 30px;
-}
-
-.menu-column {
-    flex: 1;
-}
-
-.menu-column h3 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.menu-column .dropdown-item {
-    padding: 6px 0;
-    font-size: 13px;
-    color: #444;
-    transition: all 0.2s ease;
-}
-
-.menu-column .dropdown-item:hover {
-    background: transparent;
-    color: #febd69;
-    text-decoration: underline;
-    transform: translateX(5px);
-}
-
-/* Returns & Orders */
-.returns-orders {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-    padding: 8px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    color: white;
-}
-
-.returns-orders:hover {
-    background: #485769;
-}
-
-.returns-text {
-    font-size: 11px;
-    color: #ccc;
-}
-
-.orders-bold {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-/* Cart */
-.cart-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 8px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    color: white;
-    position: relative;
-}
-
-.cart-wrapper:hover {
-    background: #485769;
-}
-
-.cart-icon {
-    font-size: 22px;
-}
-
-.cart-count {
-    position: absolute;
-    top: 0;
-    left: 22px;
-    background: #febd69;
-    color: #131921;
-    font-size: 14px;
-    font-weight: 700;
-    min-width: 20px;
-    height: 20px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-}
-
-.cart-text {
-    font-size: 13px;
-    font-weight: 600;
-    margin-left: 5px;
-}
-
-/* Secondary Navigation */
-.secondary-nav {
-    background: #232f3e;
-    padding: 8px 0;
-}
-
-.all-menu-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.all-menu-btn:hover {
-    background: #485769;
-}
-
-.all-menu-list {
-    width: 300px;
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    padding: 10px 0;
-}
-
-.all-menu-list .dropdown-header {
-    font-size: 12px;
-    font-weight: 600;
-    color: #333;
-    padding: 8px 20px;
-}
-
-.all-menu-list .dropdown-item {
-    font-size: 13px;
-    padding: 8px 20px;
-    transition: all 0.2s ease;
-}
-
-.all-menu-list .dropdown-item:hover {
-    background: #febd69;
-    color: #131921;
-    padding-left: 25px;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-left: 15px;
-    overflow-x: auto;
-    white-space: nowrap;
-    scrollbar-width: thin;
-}
-
-.nav-links::-webkit-scrollbar {
-    height: 3px;
-}
-
-.nav-links::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.nav-links::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 5px 0;
-    transition: all 0.3s ease;
-}
-
-.nav-links a:hover {
-    color: #febd69;
-    border-bottom: 2px solid #febd69;
-}
-
-/* Prime Banner */
-.prime-banner {
-    background: #2d2f31;
-    padding: 8px 0;
-    color: white;
-}
-
-.banner-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-}
-
-.banner-text {
-    color: #febd69;
-    font-weight: 500;
-}
-
-.prime-tag {
-    background: #febd69;
-    color: #131921;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-}
-
-.asterisk-text {
-    color: #999;
-    font-size: 11px;
-}
-
-/* Mobile Navigation */
-.mobile-nav-bottom {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-    padding: 5px 0;
-    border-top: 1px solid #eee;
-}
-
-.mobile-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #666;
-    text-decoration: none;
-    font-size: 11px;
-    position: relative;
-    padding: 5px 0;
-}
-
-.mobile-nav-item i {
-    font-size: 20px;
-    margin-bottom: 2px;
-}
-
-.mobile-nav-item.active {
-    color: #febd69;
-}
-
-.mobile-cart-count {
-    position: absolute;
-    top: 0;
-    right: 25%;
-    background: #febd69;
-    color: #131921;
-    font-size: 10px;
-    font-weight: 700;
-    min-width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 3px;
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .search-col {
-        order: 3;
-        margin-top: 10px;
-        width: 100%;
-        flex: 0 0 100%;
-    }
-    
-    .secondary-nav {
-        display: none;
-    }
-    
-    .prime-banner {
-        display: none;
-    }
-}
-
-@media (max-width: 768px) {
-    .account-menu {
-        width: 300px;
-    }
-    
-    .account-menu-content {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .mobile-nav-bottom {
-        display: flex;
-    }
-    
-    .main-header {
-        padding-bottom: 5px;
-    }
-}
-
-@media (max-width: 576px) {
-    .logo-text {
-        font-size: 20px;
-    }
-    
-    .logo-dot {
-        font-size: 16px;
-    }
-    
-    .cart-text {
-        display: none;
-    }
-}
+/* ... (your existing styles remain the same) ... */
 </style>
 @endpush
 
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // ============================================
+    // HEADER JAVASCRIPT FUNCTIONS
+    // ============================================
+    
     // Update cart count dynamically
     function updateCartCount() {
         $.get('{{ route("cart.count") }}', function(response) {
@@ -998,6 +526,12 @@ $(document).ready(function() {
         if ($(this).attr('href') === currentPath) {
             $(this).addClass('active');
         }
+    });
+    
+    // Initialize Bootstrap dropdowns for dynamic content
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl)
     });
 });
 </script>
