@@ -86,14 +86,15 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(func
     // PRODUCT MANAGEMENT
     // ============================================
     Route::prefix('products')->name('products.')->controller(ProductController::class)->group(function() {
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{product}/edit', 'edit')->name('edit');
-        Route::put('/{product}', 'update')->name('update');
-        Route::delete('/{product}', 'destroy')->name('destroy');
-        Route::get('/inventory', 'inventory')->name('inventory');
-        Route::post('/stock/update', 'updateStock')->name('stock.update');
+    Route::get('/', 'index')->name('index');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/{product}/edit', 'edit')->name('edit');
+    Route::put('/{product}', 'update')->name('update');
+    Route::delete('/{product}', 'destroy')->name('destroy');
+    Route::get('/inventory', 'inventory')->name('inventory');
+    Route::post('/stock/update', 'updateStock')->name('stock.update');
+    Route::post('/{product}/toggle-status', 'toggleStatus')->name('toggle-status');
     });
     
     // ============================================

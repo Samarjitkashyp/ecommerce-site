@@ -1,44 +1,60 @@
 @extends('layouts.master')
 
-@section('title', $product['name'] ?? 'Product Details')
+@section('title', $product->name ?? 'Product Details')
+@section('meta_description', $product->meta_description ?? '')
+@section('meta_keywords', $product->meta_keywords ?? '')
 
 @section('content')
 <!-- ============================================
-     BREADCRUMB SECTION
+     BREADCRUMB SECTION - 🔥 DYNAMIC FROM DATABASE
      ============================================ -->
 <section class="breadcrumb-section py-2 bg-light">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('category', $product['category'] ?? 'fashion') }}" class="text-decoration-none">
-                    {{ ucfirst($product['category'] ?? 'Fashion') }}
-                </a></li>
-                <li class="breadcrumb-item"><a href="{{ route('category', $product['subcategory'] ?? 'mens-clothing') }}" class="text-decoration-none">
-                    {{ str_replace('-', ' ', ucfirst($product['subcategory'] ?? 'Men\'s Clothing')) }}
-                </a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ $product['name'] ?? 'Product' }}</li>
+                
+                {{-- 🔥 DYNAMIC: Category from database --}}
+                @if($product->category)
+                <li class="breadcrumb-item">
+                    <a href="{{ $product->category->url }}" class="text-decoration-none">
+                        {{ $product->category->name }}
+                    </a>
+                </li>
+                @endif
+                
+                {{-- 🔥 DYNAMIC: Subcategory if exists --}}
+                @if($product->subcategory)
+                <li class="breadcrumb-item">
+                    <a href="{{ route('category', $product->subcategory) }}" class="text-decoration-none">
+                        {{ str_replace('-', ' ', ucfirst($product->subcategory)) }}
+                    </a>
+                </li>
+                @endif
+                
+                <li class="breadcrumb-item active" aria-current="page">{{ $product->name }}</li>
             </ol>
         </nav>
     </div>
 </section>
 
 <!-- ============================================
-     MAIN PRODUCT SECTION
+     MAIN PRODUCT SECTION - 🔥 COMPLETELY DYNAMIC
      ============================================ -->
 <section class="product-detail-section py-4">
     <div class="container">
         <div class="row g-4">
             <!-- ============================================
-                 LEFT COLUMN - PRODUCT IMAGES
+                 LEFT COLUMN - PRODUCT IMAGES (🔥 DYNAMIC)
                  ============================================ -->
             <div class="col-lg-5">
                 <div class="product-gallery">
                     <!-- Main Image with Zoom -->
                     <div class="main-image-container mb-3">
                         <div class="zoom-container">
-                            <img src="{{ $product['images']['main'] ?? 'https://picsum.photos/500/500?random=201' }}" 
-                                 alt="{{ $product['name'] ?? 'Product Image' }}" 
+                            {{-- 🔥 DYNAMIC: Main image from database --}}
+                            <img src="{{ $product->main_image ? asset('storage/'.$product->main_image) : 'https://picsum.photos/500/500?random='.$product->id }}" 
+                                 alt="{{ $product->name }}" 
                                  class="img-fluid main-image" 
                                  id="mainProductImage">
                             
@@ -48,65 +64,43 @@
                             <!-- Zoom Result -->
                             <div class="zoom-result"></div>
                             
-                            <!-- Badges -->
-                            @if(isset($product['badge']))
-                            <div class="product-badge-large">{{ $product['badge'] }}</div>
+                            {{-- 🔥 DYNAMIC: Badge from database --}}
+                            @if($product->badge)
+                            <div class="product-badge-large 
+                                @if($product->badge == 'TRENDING') trending 
+                                @elseif($product->badge == 'NEW') new 
+                                @elseif($product->badge == 'BESTSELLER') bestseller 
+                                @endif">
+                                {{ $product->badge }}
+                            </div>
                             @endif
                             
                             <!-- Wishlist Button -->
-                            <button class="btn wishlist-btn" title="Add to Wishlist">
+                            <button class="btn wishlist-btn" data-id="{{ $product->id }}" title="Add to Wishlist">
                                 <i class="far fa-heart"></i>
                             </button>
                         </div>
                     </div>
                     
-                    <!-- Thumbnail Images -->
+                    {{-- 🔥 DYNAMIC: Thumbnail Images from database --}}
+                    @php
+                        $thumbnails = $product->thumbnail_images ?? [];
+                    @endphp
+                    
+                    @if(!empty($thumbnails) && count($thumbnails) > 0)
                     <div class="thumbnail-images">
                         <div class="row g-2">
-                            @if(isset($product['images']['thumbnails']) && count($product['images']['thumbnails']) > 0)
-                                @foreach($product['images']['thumbnails'] as $index => $thumbnail)
-                                <div class="col-3">
-                                    <div class="thumbnail-item {{ $index == 0 ? 'active' : '' }}" 
-                                         onclick="changeImage(this, '{{ $thumbnail }}')">
-                                        <img src="{{ $thumbnail }}" alt="Thumbnail {{ $index+1 }}" class="img-fluid">
-                                    </div>
+                            @foreach($thumbnails as $index => $thumbnail)
+                            <div class="col-3">
+                                <div class="thumbnail-item {{ $index == 0 ? 'active' : '' }}" 
+                                     onclick="changeImage(this, '{{ asset('storage/'.$thumbnail) }}')">
+                                    <img src="{{ asset('storage/'.$thumbnail) }}" alt="Thumbnail {{ $index+1 }}" class="img-fluid">
                                 </div>
-                                @endforeach
-                            @else
-                                <!-- Default thumbnails if none provided -->
-                                <div class="col-3">
-                                    <div class="thumbnail-item active" onclick="changeImage(this, 'https://picsum.photos/500/500?random=201')">
-                                        <img src="https://picsum.photos/100/100?random=201" alt="Thumbnail 1" class="img-fluid">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=202')">
-                                        <img src="https://picsum.photos/100/100?random=202" alt="Thumbnail 2" class="img-fluid">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=203')">
-                                        <img src="https://picsum.photos/100/100?random=203" alt="Thumbnail 3" class="img-fluid">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=204')">
-                                        <img src="https://picsum.photos/100/100?random=204" alt="Thumbnail 4" class="img-fluid">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=205')">
-                                        <img src="https://picsum.photos/100/100?random=205" alt="Thumbnail 5" class="img-fluid">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="thumbnail-item" onclick="changeImage(this, 'https://picsum.photos/500/500?random=206')">
-                                        <img src="https://picsum.photos/100/100?random=206" alt="Thumbnail 6" class="img-fluid">
-                                    </div>
-                                </div>
-                            @endif
+                            </div>
+                            @endforeach
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Share & Social -->
                     <div class="share-section mt-3">
@@ -121,70 +115,60 @@
             </div>
             
             <!-- ============================================
-                 MIDDLE COLUMN - PRODUCT INFO
+                 MIDDLE COLUMN - PRODUCT INFO (🔥 DYNAMIC)
                  ============================================ -->
             <div class="col-lg-4">
                 <div class="product-info-wrapper">
                     <!-- Brand -->
                     <div class="brand-section mb-2">
-                        <a href="{{ route('category', $product['category'] ?? 'fashion') }}" class="brand-link">{{ $product['brand'] ?? 'Brand' }}</a>
+                        <a href="{{ route('category', $product->brand) }}" class="brand-link">{{ $product->brand }}</a>
                     </div>
                     
                     <!-- Product Title -->
-                    <h1 class="product-title-main">{{ $product['name'] ?? 'Product Title' }}</h1>
+                    <h1 class="product-title-main">{{ $product->name }}</h1>
                     
                     <!-- Rating Section -->
                     <div class="rating-section mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <span class="rating-badge-large">{{ $product['rating'] ?? '4.3' }} <i class="fas fa-star"></i></span>
-                            <span class="rating-count">{{ number_format($product['reviews'] ?? 3245) }} ratings and {{ number_format(($product['reviews'] ?? 3245)/25) }} reviews</span>
+                            <span class="rating-badge-large">{{ number_format($product->rating, 1) }} <i class="fas fa-star"></i></span>
+                            <span class="rating-count">{{ number_format($product->reviews_count) }} ratings</span>
                         </div>
+                        
+                        {{-- 🔥 DYNAMIC: Rating breakdown (calculated) --}}
+                        @if($product->reviews_count > 0)
                         <div class="rating-breakdown mt-2">
+                            @php
+                                // In real app, these would come from database
+                                $ratingPercentages = [
+                                    5 => $product->rating >= 4.5 ? 75 : 60,
+                                    4 => $product->rating >= 3.5 ? 15 : 20,
+                                    3 => $product->rating >= 2.5 ? 5 : 10,
+                                    2 => $product->rating >= 1.5 ? 3 : 5,
+                                    1 => $product->rating >= 0.5 ? 2 : 5,
+                                ];
+                            @endphp
+                            
+                            @foreach($ratingPercentages as $star => $percentage)
                             <div class="rating-row">
-                                <span class="rating-label">5★</span>
+                                <span class="rating-label">{{ $star }}★</span>
                                 <div class="rating-bar">
-                                    <div class="rating-fill" style="width: 75%"></div>
+                                    <div class="rating-fill" style="width: {{ $percentage }}%"></div>
                                 </div>
-                                <span class="rating-percent">75%</span>
+                                <span class="rating-percent">{{ $percentage }}%</span>
                             </div>
-                            <div class="rating-row">
-                                <span class="rating-label">4★</span>
-                                <div class="rating-bar">
-                                    <div class="rating-fill" style="width: 15%"></div>
-                                </div>
-                                <span class="rating-percent">15%</span>
-                            </div>
-                            <div class="rating-row">
-                                <span class="rating-label">3★</span>
-                                <div class="rating-bar">
-                                    <div class="rating-fill" style="width: 5%"></div>
-                                </div>
-                                <span class="rating-percent">5%</span>
-                            </div>
-                            <div class="rating-row">
-                                <span class="rating-label">2★</span>
-                                <div class="rating-bar">
-                                    <div class="rating-fill" style="width: 3%"></div>
-                                </div>
-                                <span class="rating-percent">3%</span>
-                            </div>
-                            <div class="rating-row">
-                                <span class="rating-label">1★</span>
-                                <div class="rating-bar">
-                                    <div class="rating-fill" style="width: 2%"></div>
-                                </div>
-                                <span class="rating-percent">2%</span>
-                            </div>
+                            @endforeach
                         </div>
+                        @endif
                     </div>
                     
                     <!-- Price Section -->
                     <div class="price-section-main mb-3">
                         <div class="d-flex align-items-baseline gap-3">
-                            <span class="current-price-large">₹{{ number_format($product['price'] ?? 799) }}</span>
-                            @if(isset($product['original_price']) && $product['original_price'] > $product['price'])
-                            <span class="original-price-large">₹{{ number_format($product['original_price']) }}</span>
-                            <span class="discount-large">{{ $product['discount'] ?? 68 }}% off</span>
+                            <span class="current-price-large">₹{{ number_format($product->price) }}</span>
+                            
+                            @if($product->original_price && $product->original_price > $product->price)
+                            <span class="original-price-large">₹{{ number_format($product->original_price) }}</span>
+                            <span class="discount-large">{{ $product->discount_percentage }}% off</span>
                             @endif
                         </div>
                         <div class="price-info mt-1">
@@ -192,7 +176,7 @@
                         </div>
                     </div>
                     
-                    <!-- Offers Section -->
+                    <!-- Offers Section - 🔥 Can be managed from admin later -->
                     <div class="offers-section mb-3">
                         <h5 class="section-subtitle"><i class="fas fa-tag me-2"></i>Available Offers</h5>
                         <div class="offer-list">
@@ -212,14 +196,13 @@
                         </div>
                     </div>
                     
-                    <!-- Color Selection -->
-                    @if(isset($product['colors']) && count($product['colors']) > 0)
+                    {{-- 🔥 DYNAMIC: Color Selection --}}
+                    @if(!empty($product->colors) && count($product->colors) > 0)
                     <div class="color-section mb-3">
-                        <h5 class="section-subtitle">Color: <span class="selected-color">{{ $product['colors'][0] ?? 'Navy Blue' }}</span></h5>
+                        <h5 class="section-subtitle">Color: <span class="selected-color">{{ $product->colors[0] }}</span></h5>
                         <div class="color-options">
-                            @foreach($product['colors'] as $color)
+                            @foreach($product->colors as $color)
                             @php
-                                // Color mapping function as PHP code inside Blade
                                 $colorCode = match($color) {
                                     'Navy Blue' => '#000080',
                                     'Red' => '#ff0000',
@@ -244,18 +227,17 @@
                     </div>
                     @endif
                     
-                    <!-- Size Selection -->
-                    @if(isset($product['sizes']) && count($product['sizes']) > 0)
+                    {{-- 🔥 DYNAMIC: Size Selection --}}
+                    @if(!empty($product->sizes) && count($product->sizes) > 0)
                     <div class="size-section mb-3">
                         <div class="d-flex justify-content-between">
                             <h5 class="section-subtitle">Select Size</h5>
                             <a href="#" class="size-chart-link"><i class="fas fa-ruler"></i> Size Chart</a>
                         </div>
                         <div class="size-options">
-                            @foreach($product['sizes'] as $size)
+                            @foreach($product->sizes as $size)
                             <div class="size-option {{ $loop->first ? 'active' : '' }}">{{ $size }}</div>
                             @endforeach
-                            <div class="size-option disabled">XXXL</div>
                         </div>
                     </div>
                     @endif
@@ -265,18 +247,22 @@
                         <h5 class="section-subtitle">Quantity</h5>
                         <div class="quantity-selector">
                             <button class="quantity-btn" id="decreaseQty">-</button>
-                            <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="10" readonly>
+                            <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="{{ $product->stock_quantity ?: 10 }}" readonly>
                             <button class="quantity-btn" id="increaseQty">+</button>
                         </div>
+                        @if($product->stock_quantity > 0)
+                        <small class="text-muted ms-2">{{ $product->stock_quantity }} items available</small>
+                        @endif
                     </div>
                     
                     <!-- Action Buttons -->
                     <div class="action-buttons">
                         <button class="btn btn-add-to-cart" id="addToCartBtn" 
-                                data-id="{{ $product['id'] ?? 1 }}"
-                                data-name="{{ $product['name'] ?? 'Product' }}"
-                                data-brand="{{ $product['brand'] ?? 'Brand' }}"
-                                data-price="{{ $product['price'] ?? 799 }}">
+                                data-id="{{ $product->id }}"
+                                data-name="{{ $product->name }}"
+                                data-brand="{{ $product->brand }}"
+                                data-price="{{ $product->price }}"
+                                data-image="{{ $product->main_image ? asset('storage/'.$product->main_image) : 'https://picsum.photos/500/500?random='.$product->id }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                         <button class="btn btn-buy-now" id="buyNowBtn">
@@ -293,10 +279,17 @@
                         </div>
                         <div class="delivery-date">
                             <i class="fas fa-truck"></i>
-                            <span>Delivery by <strong>{{ date('d M Y', strtotime('+3 days')) }}</strong> | <span class="text-success">Free</span></span>
+                            <span>Delivery by <strong>{{ date('d M Y', strtotime('+3 days')) }}</strong> | 
+                                @if($product->price >= 499)
+                                <span class="text-success">Free</span>
+                                @else
+                                <span>₹40</span>
+                                @endif
+                            </span>
                         </div>
-                        <div class="stock-status text-success mt-2">
-                            <i class="fas fa-check-circle"></i> In Stock
+                        <div class="stock-status {{ $product->in_stock ? 'text-success' : 'text-danger' }} mt-2">
+                            <i class="fas {{ $product->in_stock ? 'fa-check-circle' : 'fa-times-circle' }}"></i> 
+                            {{ $product->in_stock ? 'In Stock' : 'Out of Stock' }}
                         </div>
                         
                         <!-- Pin Code Check -->
@@ -309,24 +302,32 @@
                         </div>
                     </div>
                     
-                    <!-- Product Highlights -->
-                    @if(isset($product['highlights']) && count($product['highlights']) > 0)
+                    {{-- 🔥 DYNAMIC: Product Highlights --}}
+                    @if(!empty($product->highlights) && count($product->highlights) > 0)
                     <div class="product-highlights mt-3">
                         <h5 class="section-subtitle">Product Highlights</h5>
                         <ul class="highlights-list">
-                            @foreach($product['highlights'] as $highlight)
+                            @foreach($product->highlights as $highlight)
                             <li><i class="fas fa-check-circle"></i> {{ $highlight }}</li>
                             @endforeach
                         </ul>
                     </div>
                     @endif
                     
-                    <!-- Seller Info -->
+                    {{-- 🔥 DYNAMIC: Seller Info --}}
+                    @if($product->seller)
                     <div class="seller-info mt-3">
                         <span class="seller-label">Seller: </span>
-                        <a href="#" class="seller-name">{{ $product['seller'] ?? 'SuperComNet' }}</a>
-                        <span class="seller-rating"><i class="fas fa-star text-warning"></i> {{ $product['seller_rating'] ?? 4.2 }} ({{ number_format($product['seller_ratings_count'] ?? 12000) }} ratings)</span>
+                        <a href="#" class="seller-name">{{ $product->seller }}</a>
+                        @if($product->seller_rating)
+                        <span class="seller-rating">
+                            <i class="fas fa-star text-warning"></i> 
+                            {{ number_format($product->seller_rating, 1) }} 
+                            ({{ number_format($product->seller_ratings_count ?? 0) }} ratings)
+                        </span>
+                        @endif
                     </div>
+                    @endif
                 </div>
             </div>
             
@@ -353,17 +354,20 @@
                     
                     <!-- Services -->
                     <div class="services-section mb-3">
+                        {{-- 🔥 DYNAMIC: Warranty from database --}}
+                        @if($product->warranty)
                         <div class="service-item">
                             <i class="fas fa-shield-alt"></i>
-                            <span>1 Year Warranty</span>
+                            <span>{{ Str::limit($product->warranty, 30) }}</span>
                         </div>
+                        @endif
                         <div class="service-item">
                             <i class="fas fa-undo-alt"></i>
                             <span>7 Days Replacement</span>
                         </div>
                         <div class="service-item">
                             <i class="fas fa-truck"></i>
-                            <span>Free Delivery</span>
+                            <span>Free Delivery on ₹499+</span>
                         </div>
                         <div class="service-item">
                             <i class="fas fa-money-bill-wave"></i>
@@ -382,123 +386,90 @@
 </section>
 
 <!-- ============================================
-     PRODUCT DETAILS TABS SECTION
+     PRODUCT DETAILS TABS SECTION (🔥 DYNAMIC)
      ============================================ -->
 <section class="product-tabs-section py-4 bg-light">
     <div class="container">
         <div class="product-tabs">
-            <!-- Tab Navigation -->
+            <!-- Tab Navigation - 🔥 Dynamic based on available data -->
             <ul class="nav nav-tabs" id="productTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">Product Description</button>
+                <li class="nav-item">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description">Product Description</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">Specifications</button>
+                
+                {{-- 🔥 DYNAMIC: Show specifications tab only if exists --}}
+                @if(!empty($product->specifications))
+                <li class="nav-item">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications">Specifications</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews ({{ number_format(($product['reviews'] ?? 3245)/25) }})</button>
+                @endif
+                
+                <li class="nav-item">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews">Reviews ({{ number_format($product->reviews_count) }})</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="warranty-tab" data-bs-toggle="tab" data-bs-target="#warranty" type="button" role="tab">Warranty</button>
+                
+                {{-- 🔥 DYNAMIC: Show warranty tab only if exists --}}
+                @if($product->warranty)
+                <li class="nav-item">
+                    <button class="nav-link" id="warranty-tab" data-bs-toggle="tab" data-bs-target="#warranty">Warranty</button>
                 </li>
+                @endif
             </ul>
             
             <!-- Tab Content -->
             <div class="tab-content p-4" id="productTabsContent">
-                <!-- Description Tab -->
+                <!-- Description Tab - 🔥 DYNAMIC -->
                 <div class="tab-pane fade show active" id="description" role="tabpanel">
                     <h5>Product Description</h5>
-                    <p>{{ $product['description'] ?? 'Elevate your casual style with this men\'s printed round neck t-shirt from Jack & Jones. Crafted from premium quality pure cotton, this t-shirt offers exceptional comfort and breathability throughout the day. The regular fit design ensures a relaxed yet stylish look, while the printed pattern adds a touch of contemporary flair.' }}</p>
+                    <p>{{ $product->description ?? 'No description available.' }}</p>
                     
+                    {{-- 🔥 DYNAMIC: Highlights in description --}}
+                    @if(!empty($product->highlights))
                     <h6 class="mt-3">Key Features:</h6>
                     <ul>
-                        @if(isset($product['highlights']) && count($product['highlights']) > 0)
-                            @foreach($product['highlights'] as $highlight)
-                            <li>{{ $highlight }}</li>
-                            @endforeach
-                        @else
-                            <li>100% Pure Cotton for superior comfort</li>
-                            <li>Regular fit for a relaxed silhouette</li>
-                            <li>Round neck design for a classic look</li>
-                            <li>Half sleeves for ease of movement</li>
-                            <li>Machine washable for easy care</li>
-                            <li>Available in multiple colors and sizes</li>
-                        @endif
+                        @foreach($product->highlights as $highlight)
+                        <li>{{ $highlight }}</li>
+                        @endforeach
                     </ul>
+                    @endif
                 </div>
                 
-                <!-- Specifications Tab -->
+                {{-- 🔥 DYNAMIC: Specifications Tab --}}
+                @if(!empty($product->specifications))
                 <div class="tab-pane fade" id="specifications" role="tabpanel">
                     <h5>Product Specifications</h5>
                     <table class="table table-striped">
+                        @foreach($product->specifications as $key => $value)
                         <tr>
-                            <th>Brand</th>
-                            <td>{{ $product['brand'] ?? 'Jack & Jones' }}</td>
+                            <th>{{ is_numeric($key) ? 'Specification' : ucwords(str_replace('_', ' ', $key)) }}</th>
+                            <td>{{ $value }}</td>
                         </tr>
-                        <tr>
-                            <th>Model Name</th>
-                            <td>{{ $product['name'] ?? 'Printed Cotton T-Shirt' }}</td>
-                        </tr>
-                        <tr>
-                            <th>Material</th>
-                            <td>100% Cotton</td>
-                        </tr>
-                        <tr>
-                            <th>Fit</th>
-                            <td>Regular Fit</td>
-                        </tr>
-                        <tr>
-                            <th>Neck Style</th>
-                            <td>Round Neck</td>
-                        </tr>
-                        <tr>
-                            <th>Sleeve Type</th>
-                            <td>Half Sleeve</td>
-                        </tr>
-                        <tr>
-                            <th>Pattern</th>
-                            <td>Printed</td>
-                        </tr>
-                        <tr>
-                            <th>Color</th>
-                            <td>{{ $product['colors'][0] ?? 'Navy Blue' }}</td>
-                        </tr>
-                        <tr>
-                            <th>Size</th>
-                            <td>{{ implode(', ', $product['sizes'] ?? ['S', 'M', 'L', 'XL', 'XXL']) }}</td>
-                        </tr>
-                        <tr>
-                            <th>Care Instructions</th>
-                            <td>Machine Wash</td>
-                        </tr>
-                        <tr>
-                            <th>Country of Origin</th>
-                            <td>India</td>
-                        </tr>
+                        @endforeach
                     </table>
                 </div>
+                @endif
                 
                 <!-- Reviews Tab -->
                 <div class="tab-pane fade" id="reviews" role="tabpanel">
                     <div class="reviews-summary d-flex align-items-center gap-4 mb-4">
                         <div class="average-rating text-center">
-                            <h2 class="mb-0">{{ $product['rating'] ?? 4.3 }}</h2>
+                            <h2 class="mb-0">{{ number_format($product->rating, 1) }}</h2>
                             <div class="stars">
                                 @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= floor($product['rating'] ?? 4.3))
+                                    @if($i <= floor($product->rating))
                                         <i class="fas fa-star text-warning"></i>
-                                    @elseif($i == ceil($product['rating'] ?? 4.3) && ($product['rating'] ?? 4.3) - floor($product['rating'] ?? 4.3) >= 0.5)
+                                    @elseif($i == ceil($product->rating) && $product->rating - floor($product->rating) >= 0.5)
                                         <i class="fas fa-star-half-alt text-warning"></i>
                                     @else
                                         <i class="far fa-star text-warning"></i>
                                     @endif
                                 @endfor
                             </div>
-                            <p class="text-muted">{{ number_format(($product['reviews'] ?? 3245)/25) }} Reviews</p>
+                            <p class="text-muted">{{ number_format($product->reviews_count) }} Reviews</p>
                         </div>
                     </div>
                     
-                    <!-- Individual Reviews -->
+                    <!-- Individual Reviews - 🔥 Can be dynamic from reviews table -->
                     <div class="reviews-list">
                         <div class="review-item mb-3 pb-3 border-bottom">
                             <div class="d-flex justify-content-between">
@@ -536,10 +507,11 @@
                     </div>
                 </div>
                 
-                <!-- Warranty Tab -->
+                {{-- 🔥 DYNAMIC: Warranty Tab --}}
+                @if($product->warranty)
                 <div class="tab-pane fade" id="warranty" role="tabpanel">
                     <h5>Warranty Information</h5>
-                    <p>{{ $product['warranty'] ?? 'This product comes with 1 year manufacturer warranty against any manufacturing defects.' }}</p>
+                    <p>{{ $product->warranty }}</p>
                     
                     <h6 class="mt-3">Warranty Terms:</h6>
                     <ul>
@@ -551,15 +523,16 @@
                     
                     <p><strong>Note:</strong> This product is non-returnable if used or washed.</p>
                 </div>
+                @endif
             </div>
         </div>
     </div>
 </section>
 
 <!-- ============================================
-     RELATED PRODUCTS SECTION
+     RELATED PRODUCTS SECTION (🔥 DYNAMIC)
      ============================================ -->
-@if(isset($relatedProducts) && count($relatedProducts) > 0)
+@if(isset($relatedProducts) && $relatedProducts->count() > 0)
 <section class="related-products-section py-5">
     <div class="container">
         <h2 class="section-title text-center mb-4">You May Also Like</h2>
@@ -567,39 +540,40 @@
             @foreach($relatedProducts as $related)
             <div class="product-item">
                 <div class="modern-product-card">
-                    @if(isset($related['badge']))
+                    @if($related->badge)
                     <div class="product-badge 
-                        @if($related['badge'] == 'TRENDING') trending 
-                        @elseif($related['badge'] == 'NEW') new 
-                        @else bestseller @endif">
-                        {{ $related['badge'] }}
+                        @if($related->badge == 'TRENDING') trending 
+                        @elseif($related->badge == 'NEW') new 
+                        @elseif($related->badge == 'BESTSELLER') bestseller 
+                        @endif">
+                        {{ $related->badge }}
                     </div>
                     @endif
                     <div class="product-image">
-                        <img src="{{ $related['image'] ?? 'https://picsum.photos/300/300?random=' . $related['id'] }}" alt="{{ $related['name'] }}">
+                        <img src="{{ $related->main_image ? asset('storage/'.$related->main_image) : 'https://picsum.photos/300/300?random='.$related->id }}" alt="{{ $related->name }}">
                         <div class="product-actions">
                             <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
                             <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
                         </div>
                     </div>
                     <div class="product-info">
-                        <div class="brand-name">{{ $related['brand'] }}</div>
-                        <a href="{{ route('product.detail', ['id' => $related['id'], 'slug' => $related['slug'] ?? Str::slug($related['name'])]) }}">
-                            <h3 class="product-title">{{ $related['name'] }}</h3>
+                        <div class="brand-name">{{ $related->brand }}</div>
+                        <a href="{{ $related->url }}">
+                            <h3 class="product-title">{{ $related->name }}</h3>
                         </a>
                         <div class="price-section">
-                            <span class="current-price">₹{{ number_format($related['price']) }}</span>
-                            @if(isset($related['original_price']))
-                            <span class="original-price">₹{{ number_format($related['original_price']) }}</span>
-                            <span class="discount">{{ $related['discount'] }}% off</span>
+                            <span class="current-price">₹{{ number_format($related->price) }}</span>
+                            @if($related->original_price)
+                            <span class="original-price">₹{{ number_format($related->original_price) }}</span>
+                            <span class="discount">{{ $related->discount_percentage }}% off</span>
                             @endif
                         </div>
                         <button class="add-to-cart-btn mt-2" 
-                                data-id="{{ $related['id'] }}"
-                                data-name="{{ $related['name'] }}"
-                                data-brand="{{ $related['brand'] }}"
-                                data-price="{{ $related['price'] }}"
-                                data-image="{{ $related['image'] ?? 'https://picsum.photos/300/300?random=' . $related['id'] }}">
+                                data-id="{{ $related->id }}"
+                                data-name="{{ $related->name }}"
+                                data-brand="{{ $related->brand }}"
+                                data-price="{{ $related->price }}"
+                                data-image="{{ $related->main_image ? asset('storage/'.$related->main_image) : 'https://picsum.photos/300/300?random='.$related->id }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                     </div>
@@ -624,6 +598,7 @@
 </section>
 @endsection
 
+{{-- 🔥 ALL EXISTING STYLES REMAIN EXACTLY THE SAME --}}
 @push('styles')
 <style>
 /* ============================================
@@ -1315,6 +1290,7 @@
 </style>
 @endpush
 
+{{-- 🔥 UPDATED SCRIPTS - Fixed for dynamic data --}}
 @push('scripts')
 <script>
 $(document).ready(function() {
@@ -1439,11 +1415,32 @@ $(document).ready(function() {
         if (icon.hasClass('far')) {
             icon.removeClass('far').addClass('fas');
             showNotification('Added to wishlist!', 'success');
+            
+            // 🔥 Save to wishlist (can be implemented with AJAX)
+            saveToWishlist($(this).data('id'));
         } else {
             icon.removeClass('fas').addClass('far');
             showNotification('Removed from wishlist', 'info');
+            
+            // 🔥 Remove from wishlist
+            removeFromWishlist($(this).data('id'));
         }
     });
+    
+    // Wishlist functions using localStorage
+    function saveToWishlist(productId) {
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        if (!wishlist.includes(productId)) {
+            wishlist.push(productId);
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        }
+    }
+    
+    function removeFromWishlist(productId) {
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        wishlist = wishlist.filter(id => id != productId);
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    }
     
     // ============================================
     // PINCODE CHECK
@@ -1477,84 +1474,81 @@ $(document).ready(function() {
     // ============================================
     // ADD TO CART - FIXED WORKING VERSION
     // ============================================
-    // ============================================
-// ADD TO CART - FIXED WORKING VERSION
-// ============================================
-$('#addToCartBtn').on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    let button = $(this);
-    let quantity = $('#productQuantity').val();
-    let size = $('.size-option.active').text() || 'S';
-    let color = $('.color-option.active').attr('title') || 'Navy Blue';
-    
-    // Get product details
-    let id = button.data('id');
-    let name = button.data('name');
-    let brand = button.data('brand');
-    let price = button.data('price');
-    let image = $('#mainProductImage').attr('src');
-    
-    console.log('Adding to cart:', {id, name, brand, price, image, quantity, size, color});
-    
-    // Button animation
-    let originalText = button.html();
-    button.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-    button.prop('disabled', true);
-    
-    $.ajax({
-        url: '/cart/add', // Direct URL - guaranteed to work
-        type: 'POST',
-        data: {
-            id: id,
-            name: name,
-            brand: brand,
-            price: price,
-            image: image,
-            quantity: quantity,
-            selected_size: size,
-            selected_color: color,
-            _token: $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            console.log('Add to cart success:', response);
-            
-            if (response.success) {
-                // Update cart count
-                $('.cart-count').text(response.cart_count);
-                $('.mobile-cart-count').text(response.cart_count);
+    $('#addToCartBtn').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let button = $(this);
+        let quantity = $('#productQuantity').val();
+        let size = $('.size-option.active').text() || '';
+        let color = $('.color-option.active').attr('title') || '';
+        
+        // Get product details
+        let id = button.data('id');
+        let name = button.data('name');
+        let brand = button.data('brand');
+        let price = button.data('price');
+        let image = button.data('image');
+        
+        console.log('Adding to cart:', {id, name, brand, price, image, quantity, size, color});
+        
+        // Button animation
+        let originalText = button.html();
+        button.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: '/cart/add',
+            type: 'POST',
+            data: {
+                id: id,
+                name: name,
+                brand: brand,
+                price: price,
+                image: image,
+                quantity: quantity,
+                selected_size: size,
+                selected_color: color,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                console.log('Add to cart success:', response);
                 
-                // Animate cart
-                $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
-                setTimeout(function() {
-                    $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
-                }, 1000);
+                if (response.success) {
+                    // Update cart count
+                    $('.cart-count').text(response.cart_count);
+                    $('.mobile-cart-count').text(response.cart_count);
+                    
+                    // Animate cart
+                    $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
+                    setTimeout(function() {
+                        $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
+                    }, 1000);
+                    
+                    showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+                    
+                    // Redirect to cart page
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 1000);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Add to cart error:', error);
+                console.error('Response:', xhr.responseText);
                 
-                showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+                button.html(originalText);
+                button.prop('disabled', false);
                 
-                // Redirect to cart page
-                setTimeout(function() {
-                    window.location.href = response.redirect;
-                }, 1000);
+                let errorMessage = 'Error adding to cart';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                showNotification(errorMessage, 'error');
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('Add to cart error:', error);
-            console.error('Response:', xhr.responseText);
-            
-            button.html(originalText);
-            button.prop('disabled', false);
-            
-            let errorMessage = 'Error adding to cart';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
-            }
-            
-            showNotification(errorMessage, 'error');
-        }
+        });
     });
-});
     
     // ============================================
     // BUY NOW
@@ -1576,12 +1570,13 @@ $('#addToCartBtn').on('click', function(e) {
     // ============================================
     function saveToRecentlyViewed() {
         let product = {
-            id: '{{ $product["id"] ?? "product-1" }}',
+            id: '{{ $product->id }}',
             name: $('.product-title-main').text().trim(),
             brand: $('.brand-link').text().trim(),
-            price: $('.current-price-large').text().trim(),
+            price: $('.current-price-large').text().trim().replace('₹', '').replace(',', ''),
             image: $('#mainProductImage').attr('src'),
-            slug: '{{ $product["slug"] ?? "" }}',
+            slug: '{{ $product->slug }}',
+            url: '{{ $product->url }}',
             timestamp: new Date().getTime()
         };
         
@@ -1604,6 +1599,9 @@ $('#addToCartBtn').on('click', function(e) {
         loadRecentlyViewed();
     }
     
+    // Call saveToRecentlyViewed on page load
+    saveToRecentlyViewed();
+    
     // Load recently viewed items from localStorage
     function loadRecentlyViewed() {
         let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
@@ -1625,11 +1623,11 @@ $('#addToCartBtn').on('click', function(e) {
                     </div>
                     <div class="product-info">
                         <div class="brand-name">${product.brand}</div>
-                        <a href="/product/${product.id}/${product.slug || ''}">
+                        <a href="${product.url || '/product/' + product.id + '/' + (product.slug || '')}">
                             <h3 class="product-title">${product.name}</h3>
                         </a>
                         <div class="price-section">
-                            <span class="current-price">${product.price}</span>
+                            <span class="current-price">₹${parseInt(product.price).toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
@@ -1662,9 +1660,6 @@ $('#addToCartBtn').on('click', function(e) {
             ]
         });
     }
-    
-    // Load recently viewed on page load
-    loadRecentlyViewed();
     
     // ============================================
     // RELATED PRODUCTS SLIDER
@@ -1719,7 +1714,7 @@ $('#addToCartBtn').on('click', function(e) {
                 price: price,
                 image: image,
                 quantity: 1,
-                _token: '{{ csrf_token() }}'
+                _token: $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
                 if (response.success) {

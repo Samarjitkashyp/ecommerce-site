@@ -4,7 +4,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Menu;
-use App\Models\ProductCategory; // 👈 CHANGE: Category → ProductCategory
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -41,7 +41,7 @@ class MenuController extends AdminController
     public function create()
     {
         $parentMenus = Menu::whereNull('parent_id')->get();
-        $categories = ProductCategory::where('is_active', true)->get(); // 👈 CHANGE
+        $categories = ProductCategory::where('is_active', true)->get();
         $types = Menu::TYPES;
         $locations = Menu::LOCATIONS;
 
@@ -50,6 +50,7 @@ class MenuController extends AdminController
 
     /**
      * STORE NEW MENU
+     * FIXED: URL validation now accepts # for placeholder links
      */
     public function store(Request $request)
     {
@@ -58,6 +59,7 @@ class MenuController extends AdminController
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'type' => 'required|in:link,category,dropdown,route',
+                // FIXED: URL can be # for placeholder links
                 'url' => [
                     'required_if:type,link',
                     'nullable',
@@ -69,7 +71,7 @@ class MenuController extends AdminController
                     },
                 ],
                 'route' => 'required_if:type,route|nullable|string',
-                'category_id' => 'required_if:type,category|nullable|exists:product_categories,id', // 👈 CHANGE: categories → product_categories
+                'category_id' => 'required_if:type,category|nullable|exists:categories,id',
                 'parent_id' => 'nullable|exists:menus,id',
                 'location' => 'required|in:main,top,footer,sidebar',
                 'icon' => 'nullable|string|max:50',
@@ -83,6 +85,7 @@ class MenuController extends AdminController
             $menu = Menu::create([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
+                // FIXED: Allow # as valid URL
                 'url' => $validated['url'] ?? '#',
                 'route' => $validated['route'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
@@ -120,7 +123,7 @@ class MenuController extends AdminController
             ->where('id', '!=', $menu->id)
             ->get();
         
-        $categories = ProductCategory::where('is_active', true)->get(); // 👈 CHANGE
+        $categories = Category::active()->get();
         $types = Menu::TYPES;
         $locations = Menu::LOCATIONS;
 
@@ -129,6 +132,7 @@ class MenuController extends AdminController
 
     /**
      * UPDATE MENU
+     * FIXED: URL validation now accepts # for placeholder links
      */
     public function update(Request $request, Menu $menu)
     {
@@ -137,6 +141,7 @@ class MenuController extends AdminController
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'type' => 'required|in:link,category,dropdown,route',
+                // FIXED: URL can be # for placeholder links
                 'url' => [
                     'required_if:type,link',
                     'nullable',
@@ -148,7 +153,7 @@ class MenuController extends AdminController
                     },
                 ],
                 'route' => 'required_if:type,route|nullable|string',
-                'category_id' => 'required_if:type,category|nullable|exists:product_categories,id', // 👈 CHANGE
+                'category_id' => 'required_if:type,category|nullable|exists:categories,id',
                 'parent_id' => 'nullable|exists:menus,id',
                 'location' => 'required|in:main,top,footer,sidebar',
                 'icon' => 'nullable|string|max:50',
@@ -162,6 +167,7 @@ class MenuController extends AdminController
             $menu->update([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
+                // FIXED: Allow # as valid URL
                 'url' => $validated['url'] ?? '#',
                 'route' => $validated['route'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
