@@ -17,12 +17,12 @@ class CategoryController extends Controller
      */
     public function show($category)
     {
-        // 🔥 FIXED: Get category from database by slug
+        // Get current category from database by slug
         $categoryInfo = ProductCategory::where('slug', $category)
             ->where('is_active', true)
             ->firstOrFail();
         
-        // 🔥 FIXED: Get products in this category (including subcategories)
+        // Get products in this category (including subcategories)
         $categoryIds = $this->getCategoryAndChildrenIds($categoryInfo->id);
         
         $products = Product::with('category')
@@ -32,9 +32,18 @@ class CategoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(24);
         
-        // Get subcategories for filtering
+        // 🔥 FIXED: Get ALL categories for filter sidebar (top level categories)
+        $allCategories = ProductCategory::whereNull('parent_id')
+            ->where('is_active', true)
+            ->withCount('products')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        // Get subcategories of current category for additional filtering
         $subcategories = ProductCategory::where('parent_id', $categoryInfo->id)
             ->where('is_active', true)
+            ->withCount('products')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -50,6 +59,7 @@ class CategoryController extends Controller
         return view('front.category', compact(
             'categoryInfo', 
             'products', 
+            'allCategories',
             'subcategories',
             'brands'
         ));

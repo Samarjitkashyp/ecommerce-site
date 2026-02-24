@@ -52,11 +52,12 @@
                     <!-- Main Image with Zoom -->
                     <div class="main-image-container mb-3">
                         <div class="zoom-container">
-                            {{-- 🔥 DYNAMIC: Main image from database --}}
-                            <img src="{{ $product->main_image ? asset('storage/'.$product->main_image) : 'https://picsum.photos/500/500?random='.$product->id }}" 
+                            {{-- 🔥 FIXED: Main image with fallback --}}
+                            <img src="{{ $product->main_image }}" 
                                  alt="{{ $product->name }}" 
                                  class="img-fluid main-image" 
-                                 id="mainProductImage">
+                                 id="mainProductImage"
+                                 onerror="this.onerror=null; this.src='https://picsum.photos/500/500?random={{ $product->id }}';">
                             
                             <!-- Zoom Lens -->
                             <div class="zoom-lens"></div>
@@ -82,7 +83,7 @@
                         </div>
                     </div>
                     
-                    {{-- 🔥 DYNAMIC: Thumbnail Images from database --}}
+                    {{-- 🔥 FIXED: Thumbnail Images with fallback --}}
                     @php
                         $thumbnails = $product->thumbnail_images ?? [];
                     @endphp
@@ -93,8 +94,11 @@
                             @foreach($thumbnails as $index => $thumbnail)
                             <div class="col-3">
                                 <div class="thumbnail-item {{ $index == 0 ? 'active' : '' }}" 
-                                     onclick="changeImage(this, '{{ asset('storage/'.$thumbnail) }}')">
-                                    <img src="{{ asset('storage/'.$thumbnail) }}" alt="Thumbnail {{ $index+1 }}" class="img-fluid">
+                                     onclick="changeImage(this, '{{ $thumbnail }}')">
+                                    <img src="{{ $thumbnail }}" 
+                                         alt="Thumbnail {{ $index+1 }}" 
+                                         class="img-fluid"
+                                         onerror="this.onerror=null; this.src='https://picsum.photos/100/100?random={{ $product->id }}_{{ $index }}';">
                                 </div>
                             </div>
                             @endforeach
@@ -213,25 +217,26 @@
                         <div class="color-options">
                             @foreach($colors as $color)
                             @php
-                                $colorCode = match($color) {
-                                    'Navy Blue' => '#000080',
-                                    'Red' => '#ff0000',
-                                    'Black' => '#000000',
-                                    'Grey' => '#808080',
-                                    'White' => '#ffffff',
-                                    'Green' => '#008000',
-                                    'Blue' => '#0000ff',
-                                    'Yellow' => '#ffff00',
-                                    'Purple' => '#800080',
-                                    'Orange' => '#ffa500',
-                                    'Brown' => '#a52a2a',
-                                    'Pink' => '#ffc0cb',
+                                $colorCode = match(strtolower($color)) {
+                                    'navy blue', 'navy' => '#000080',
+                                    'red' => '#ff0000',
+                                    'black' => '#000000',
+                                    'grey', 'gray' => '#808080',
+                                    'white' => '#ffffff',
+                                    'green' => '#008000',
+                                    'blue' => '#0000ff',
+                                    'yellow' => '#ffff00',
+                                    'purple' => '#800080',
+                                    'orange' => '#ffa500',
+                                    'brown' => '#a52a2a',
+                                    'pink' => '#ffc0cb',
                                     default => '#cccccc'
                                 };
                             @endphp
                             <div class="color-option {{ $loop->first ? 'active' : '' }}" 
-                                 style="background-color: {{ $colorCode }}; {{ $color == 'White' ? 'border: 1px solid #ddd;' : '' }}" 
-                                 title="{{ $color }}"></div>
+                                 style="background-color: {{ $colorCode }}; {{ $color == 'White' ? 'border: 2px solid #ddd;' : '' }}" 
+                                 title="{{ $color }}"
+                                 onclick="selectColor(this, '{{ $color }}')"></div>
                             @endforeach
                         </div>
                     </div>
@@ -256,7 +261,8 @@
                         </div>
                         <div class="size-options">
                             @foreach($sizes as $size)
-                            <div class="size-option {{ $loop->first ? 'active' : '' }}">{{ $size }}</div>
+                            <div class="size-option {{ $loop->first ? 'active' : '' }}" 
+                                 onclick="selectSize(this, '{{ $size }}')">{{ $size }}</div>
                             @endforeach
                         </div>
                     </div>
@@ -282,7 +288,7 @@
                                 data-name="{{ $product->name }}"
                                 data-brand="{{ $product->brand }}"
                                 data-price="{{ $product->price }}"
-                                data-image="{{ $product->main_image ? asset('storage/'.$product->main_image) : 'https://picsum.photos/500/500?random='.$product->id }}">
+                                data-image="{{ $product->main_image }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                         <button class="btn btn-buy-now" id="buyNowBtn">
@@ -605,7 +611,9 @@
                     </div>
                     @endif
                     <div class="product-image">
-                        <img src="{{ $related->main_image ? asset('storage/'.$related->main_image) : 'https://picsum.photos/300/300?random='.$related->id }}" alt="{{ $related->name }}">
+                        <img src="{{ $related->main_image }}" 
+                             alt="{{ $related->name }}"
+                             onerror="this.onerror=null; this.src='https://picsum.photos/300/300?random={{ $related->id }}';">
                         <div class="product-actions">
                             <button class="action-btn wishlist"><i class="far fa-heart"></i></button>
                             <button class="action-btn quick-view"><i class="far fa-eye"></i></button>
@@ -628,7 +636,7 @@
                                 data-name="{{ $related->name }}"
                                 data-brand="{{ $related->brand }}"
                                 data-price="{{ $related->price }}"
-                                data-image="{{ $related->main_image ? asset('storage/'.$related->main_image) : 'https://picsum.photos/300/300?random='.$related->id }}">
+                                data-image="{{ $related->main_image }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                     </div>
@@ -1351,6 +1359,8 @@
 $(document).ready(function() {
     'use strict';
     
+    console.log('✅ Product detail page loaded');
+    
     // ============================================
     // IMAGE ZOOM FUNCTIONALITY
     // ============================================
@@ -1444,21 +1454,19 @@ $(document).ready(function() {
     // ============================================
     // COLOR SELECTION
     // ============================================
-    $('.color-option').on('click', function() {
+    window.selectColor = function(element, color) {
         $('.color-option').removeClass('active');
-        $(this).addClass('active');
-        
-        let color = $(this).attr('title');
+        $(element).addClass('active');
         $('.selected-color').text(color);
-    });
+    };
     
     // ============================================
     // SIZE SELECTION
     // ============================================
-    $('.size-option:not(.disabled)').on('click', function() {
+    window.selectSize = function(element, size) {
         $('.size-option').removeClass('active');
-        $(this).addClass('active');
-    });
+        $(element).addClass('active');
+    };
     
     // ============================================
     // WISHLIST TOGGLE
@@ -1553,7 +1561,7 @@ $(document).ready(function() {
         button.prop('disabled', true);
         
         $.ajax({
-            url: '/cart/add',
+            url: '{{ route("cart.add") }}',
             type: 'POST',
             data: {
                 id: id,
@@ -1564,7 +1572,7 @@ $(document).ready(function() {
                 quantity: quantity,
                 selected_size: size,
                 selected_color: color,
-                _token: $('meta[name="csrf-token"]').attr('content')
+                _token: '{{ csrf_token() }}'
             },
             success: function(response) {
                 console.log('Add to cart success:', response);
@@ -1760,7 +1768,7 @@ $(document).ready(function() {
         btn.prop('disabled', true);
         
         $.ajax({
-            url: '/cart/add',
+            url: '{{ route("cart.add") }}',
             type: 'POST',
             data: {
                 id: id,
@@ -1769,7 +1777,7 @@ $(document).ready(function() {
                 price: price,
                 image: image,
                 quantity: 1,
-                _token: $('meta[name="csrf-token"]').attr('content')
+                _token: '{{ csrf_token() }}'
             },
             success: function(response) {
                 if (response.success) {

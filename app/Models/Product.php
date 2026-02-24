@@ -106,29 +106,91 @@ class Product extends Model
     }
 
     /**
-     * ACCESSOR: Get main image
-     * Pehli image return karta hai
+     * 🔥 FIXED: Get main image with proper path
+     * Returns the main image URL or a fallback
      */
     public function getMainImageAttribute()
     {
         $images = $this->images;
-        if (is_array($images) && count($images) > 0) {
-            return $images['main'] ?? ($images[0] ?? null);
+        
+        // Agar images string hai to decode karo
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?? [];
         }
+        
+        // Agar array hai to check karo
+        if (is_array($images)) {
+            // Agar 'main' key exist karti hai
+            if (isset($images['main']) && !empty($images['main'])) {
+                // Check if it's already a full URL
+                if (strpos($images['main'], 'http') === 0) {
+                    return $images['main'];
+                }
+                return asset('storage/' . $images['main']);
+            }
+            
+            // Agar numeric array hai (old format)
+            if (count($images) > 0) {
+                $firstImage = reset($images);
+                if (is_string($firstImage) && !empty($firstImage)) {
+                    if (strpos($firstImage, 'http') === 0) {
+                        return $firstImage;
+                    }
+                    return asset('storage/' . $firstImage);
+                }
+            }
+        }
+        
+        // Agar kuch nahi mila to placeholder
         return 'https://picsum.photos/500/500?random=' . $this->id;
     }
 
     /**
-     * ACCESSOR: Get thumbnail images
+     * 🔥 FIXED: Get thumbnail images with proper paths
      * Sab images return karta hai thumbnails ke liye
      */
     public function getThumbnailImagesAttribute()
     {
         $images = $this->images;
-        if (is_array($images)) {
-            return $images['thumbnails'] ?? $images;
+        $thumbnails = [];
+        
+        // Agar images string hai to decode karo
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?? [];
         }
-        return [];
+        
+        // Agar array hai
+        if (is_array($images)) {
+            // Agar 'thumbnails' key exist karti hai
+            if (isset($images['thumbnails']) && is_array($images['thumbnails'])) {
+                foreach ($images['thumbnails'] as $thumb) {
+                    if (!empty($thumb)) {
+                        if (strpos($thumb, 'http') === 0) {
+                            $thumbnails[] = $thumb;
+                        } else {
+                            $thumbnails[] = asset('storage/' . $thumb);
+                        }
+                    }
+                }
+                return $thumbnails;
+            }
+            
+            // Agar numeric array hai (old format)
+            foreach ($images as $key => $image) {
+                // Skip agar 'main' key hai
+                if ($key === 'main') continue;
+                
+                if (is_string($image) && !empty($image)) {
+                    if (strpos($image, 'http') === 0) {
+                        $thumbnails[] = $image;
+                    } else {
+                        $thumbnails[] = asset('storage/' . $image);
+                    }
+                }
+            }
+        }
+        
+        return $thumbnails;
     }
 
     /**
@@ -198,7 +260,7 @@ class Product extends Model
             }
             
             // Auto-calculate discount if not set
-            if (empty($product->discount) && $product->original_price > $product->price) {
+            if (empty($product->discount) && !empty($product->original_price) && $product->original_price > $product->price) {
                 $product->discount = round((($product->original_price - $product->price) / $product->original_price) * 100);
             }
         });
@@ -210,7 +272,7 @@ class Product extends Model
             
             // Recalculate discount if prices changed
             if ($product->isDirty('price') || $product->isDirty('original_price')) {
-                if ($product->original_price > $product->price) {
+                if (!empty($product->original_price) && $product->original_price > $product->price) {
                     $product->discount = round((($product->original_price - $product->price) / $product->original_price) * 100);
                 }
             }

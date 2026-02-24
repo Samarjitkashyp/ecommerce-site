@@ -39,7 +39,27 @@
                     </div>
                     @endif
                     
-                    <!-- Subcategories Filter -->
+                    <!-- 🔥 FIXED: ALL CATEGORIES FILTER SECTION -->
+                    <div class="filter-section">
+                        <h6 class="filter-title">ALL CATEGORIES</h6>
+                        <div class="filter-options">
+                            @foreach($allCategories as $cat)
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" 
+                                       id="cat{{ $cat->id }}" 
+                                       data-filter="category" 
+                                       data-value="{{ $cat->id }}"
+                                       {{ $cat->id == $categoryInfo->id ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cat{{ $cat->id }}">
+                                    {{ $cat->name }}
+                                    <span class="text-muted">({{ $cat->products_count ?? 0 }})</span>
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    
+                    <!-- Subcategories Filter (if available) -->
                     @if($subcategories->count() > 0)
                     <div class="filter-section">
                         <h6 class="filter-title">SUBCATEGORIES</h6>
@@ -219,8 +239,10 @@
                                 </div>
                                 @endif
                                 <div class="product-image">
-                                    <img src="{{ $product->main_image ?? 'https://picsum.photos/300/300?random='.$product->id }}" 
-                                         alt="{{ $product->name }}">
+                                    {{-- 🔥 FIXED: Image display with fallback --}}
+                                    <img src="{{ $product->main_image }}" 
+                                         alt="{{ $product->name }}"
+                                         onerror="this.onerror=null; this.src='https://picsum.photos/300/300?random={{ $product->id }}';">
                                     <div class="product-actions">
                                         <button class="action-btn wishlist-btn" title="Add to Wishlist" data-id="{{ $product->id }}">
                                             <i class="far fa-heart"></i>
@@ -701,12 +723,15 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    console.log('✅ Category page loaded');
+    
     // ============================================
     // FILTER FUNCTIONALITY
     // ============================================
     
     // Store active filters
     let activeFilters = {
+        category: [{{ $categoryInfo->id }}], // Current category selected by default
         subcategory: [],
         price: null,
         brand: [],
@@ -722,6 +747,13 @@ $(document).ready(function() {
     function updateFilterTags() {
         let tagsHtml = '';
         let filterCount = 0;
+        
+        // Category filters
+        activeFilters.category.forEach(id => {
+            let label = $(`#cat${id}`).next('label').text().split('(')[0].trim();
+            tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="category" data-value="${id}"></i></span>`;
+            filterCount++;
+        });
         
         // Subcategory filters
         activeFilters.subcategory.forEach(id => {
@@ -770,6 +802,7 @@ $(document).ready(function() {
         let params = new URLSearchParams();
         
         // Add filters to URL params
+        if (activeFilters.category.length) params.append('category', activeFilters.category.join(','));
         if (activeFilters.subcategory.length) params.append('subcategory', activeFilters.subcategory.join(','));
         if (activeFilters.price) params.append('price', activeFilters.price);
         if (activeFilters.brand.length) params.append('brand', activeFilters.brand.join(','));
@@ -787,7 +820,13 @@ $(document).ready(function() {
         let filterValue = $(this).data('value');
         let isChecked = $(this).is(':checked');
         
-        if (filterType === 'subcategory') {
+        if (filterType === 'category') {
+            if (isChecked) {
+                activeFilters.category.push(filterValue);
+            } else {
+                activeFilters.category = activeFilters.category.filter(v => v != filterValue);
+            }
+        } else if (filterType === 'subcategory') {
             if (isChecked) {
                 activeFilters.subcategory.push(filterValue);
             } else {
@@ -852,7 +891,9 @@ $(document).ready(function() {
         } else {
             $(`input[data-filter="${filterType}"][data-value="${filterValue}"]`).prop('checked', false);
             
-            if (filterType === 'subcategory') {
+            if (filterType === 'category') {
+                activeFilters.category = activeFilters.category.filter(v => v != filterValue);
+            } else if (filterType === 'subcategory') {
                 activeFilters.subcategory = activeFilters.subcategory.filter(v => v != filterValue);
             } else if (filterType === 'brand') {
                 activeFilters.brand = activeFilters.brand.filter(v => v != filterValue);
@@ -874,6 +915,7 @@ $(document).ready(function() {
         $('#minPrice, #maxPrice').val('');
         
         activeFilters = {
+            category: [],
             subcategory: [],
             price: null,
             brand: [],
@@ -902,7 +944,7 @@ $(document).ready(function() {
     });
     
     // ============================================
-    // ADD TO CART FUNCTIONALITY
+    // 🔥 FIXED: ADD TO CART FUNCTIONALITY
     // ============================================
     $(document).on('click', '.add-to-cart-btn', function(e) {
         e.preventDefault();
@@ -914,6 +956,8 @@ $(document).ready(function() {
         let brand = btn.data('brand');
         let price = btn.data('price');
         let image = btn.data('image');
+        
+        console.log('🛒 Adding to cart:', {id, name, brand, price, image});
         
         // Button animation
         let originalText = btn.html();
@@ -932,23 +976,40 @@ $(document).ready(function() {
                 quantity: 1,
                 _token: '{{ csrf_token() }}'
             },
+            dataType: 'json',
             success: function(response) {
+                console.log('✅ Add to cart success:', response);
+                
                 if (response.success) {
                     // Update cart count
                     $('.cart-count').text(response.cart_count);
                     $('.mobile-cart-count').text(response.cart_count);
                     
+                    // Animate cart
+                    $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
+                    setTimeout(function() {
+                        $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
+                    }, 1000);
+                    
+                    // Show success message
                     showNotification(response.message, 'success');
                     
+                    // 🔥 FIXED: Redirect to cart page
                     setTimeout(function() {
                         window.location.href = response.redirect;
                     }, 1000);
                 }
             },
-            error: function() {
+            error: function(xhr) {
+                console.error('❌ Add to cart error:', xhr);
                 btn.html(originalText);
                 btn.prop('disabled', false);
-                showNotification('Error adding to cart', 'error');
+                
+                let errorMessage = 'Error adding to cart';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showNotification(errorMessage, 'error');
             }
         });
     });
@@ -998,14 +1059,41 @@ $(document).ready(function() {
         @endauth
     });
     
-    // Notification function
-    function showNotification(message, type) {
+    // ============================================
+    // QUICK VIEW
+    // ============================================
+    $(document).on('click', '.quick-view-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let productId = $(this).data('id');
+        
+        $.ajax({
+            url: '/product/quick-view/' + productId,
+            type: 'GET',
+            success: function(response) {
+                $('#quickViewContent').html(response);
+                $('#quickViewModal').modal('show');
+            },
+            error: function() {
+                showNotification('Error loading product details', 'error');
+            }
+        });
+    });
+    
+    // ============================================
+    // NOTIFICATION FUNCTION
+    // ============================================
+    function showNotification(message, type = 'info') {
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
         } else {
             alert(message);
         }
     }
+    
+    // Initial update
+    updateFilterTags();
 });
 </script>
 @endpush
