@@ -32,7 +32,9 @@
     </div>
 </section>
 
-<!-- Category Slider Section -->
+<!-- ============================================
+     SHOP BY CATEGORY SECTION - DYNAMIC FROM ADMIN
+     ============================================ -->
 <section class="category-section py-5">
     <div class="container">
         <div class="section-title text-center mb-4">
@@ -49,12 +51,29 @@
             </div>
             
             <div class="category-slider owl-carousel owl-theme">
-                <!-- Categories -->
+                @forelse($homeCategories as $item)
+                <!-- Category Item -->
                 <div class="category-item">
-                    <a href="{{ route('category', 'fashion') }}" class="category-link">
+                    <a href="{{ $item->url }}" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Fashion">
+                                <img src="{{ $item->display_image }}" 
+                                     alt="{{ $item->display_name }}"
+                                     loading="lazy">
+                            </div>
+                            <div class="category-name">
+                                <span>{{ $item->display_name }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @empty
+                <!-- Fallback if no categories in database -->
+                <div class="category-item">
+                    <a href="#" class="category-link">
+                        <div class="category-card">
+                            <div class="category-image">
+                                <img src="https://picsum.photos/200/200?random=1" alt="Fashion">
                             </div>
                             <div class="category-name">
                                 <span>Fashion</span>
@@ -62,25 +81,11 @@
                         </div>
                     </a>
                 </div>
-                
                 <div class="category-item">
-                    <a href="{{ route('category', 'travel') }}" class="category-link">
+                    <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Travel">
-                            </div>
-                            <div class="category-name">
-                                <span>Travel</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'electronics') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/3.png') }}" alt="Electronics">
+                                <img src="https://picsum.photos/200/200?random=2" alt="Electronics">
                             </div>
                             <div class="category-name">
                                 <span>Electronics</span>
@@ -88,90 +93,23 @@
                         </div>
                     </a>
                 </div>
-                
                 <div class="category-item">
-                    <a href="{{ route('category', 'home-kitchen') }}" class="category-link">
+                    <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="{{ asset('images/category-slider/4.png') }}" alt="Home & Kitchen">
+                                <img src="https://picsum.photos/200/200?random=3" alt="Home & Kitchen">
                             </div>
                             <div class="category-name">
-                                <span>Home & kitchen</span>
+                                <span>Home & Kitchen</span>
                             </div>
                         </div>
                     </a>
                 </div>
-                
                 <div class="category-item">
-                    <a href="{{ route('category', 'auto-accessories') }}" class="category-link">
+                    <a href="#" class="category-link">
                         <div class="category-card">
                             <div class="category-image">
-                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Auto Accessories">
-                            </div>
-                            <div class="category-name">
-                                <span>Auto Acc</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'toys-baby') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Toys & Baby">
-                            </div>
-                            <div class="category-name">
-                                <span>Toys, Baby...</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'genz-trends') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/3.png') }}" alt="GenZ Trends">
-                            </div>
-                            <div class="category-name">
-                                <span>GenZ Trends</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'next-gen') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/4.png') }}" alt="Next Gen">
-                            </div>
-                            <div class="category-name">
-                                <span>Next Gen</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'sports') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/1.png') }}" alt="Sports">
-                            </div>
-                            <div class="category-name">
-                                <span>Sports</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="category-item">
-                    <a href="{{ route('category', 'books') }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ asset('images/category-slider/2.png') }}" alt="Books">
+                                <img src="https://picsum.photos/200/200?random=4" alt="Books">
                             </div>
                             <div class="category-name">
                                 <span>Books</span>
@@ -179,6 +117,31 @@
                         </div>
                     </a>
                 </div>
+                <div class="category-item">
+                    <a href="#" class="category-link">
+                        <div class="category-card">
+                            <div class="category-image">
+                                <img src="https://picsum.photos/200/200?random=5" alt="Sports">
+                            </div>
+                            <div class="category-name">
+                                <span>Sports</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="category-item">
+                    <a href="#" class="category-link">
+                        <div class="category-card">
+                            <div class="category-image">
+                                <img src="https://picsum.photos/200/200?random=6" alt="Toys & Baby">
+                            </div>
+                            <div class="category-name">
+                                <span>Toys & Baby</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -192,12 +155,20 @@
             <p class="text-muted animate__animated animate__fadeInUp animate__delay-1s">Check out our latest products</p>
         </div>
         <div class="product-slider owl-carousel owl-theme">
-            <!-- Product 1 -->
+            @foreach($featuredProducts as $product)
+            <!-- Product -->
             <div class="product-item">
                 <div class="modern-product-card">
-                    <div class="product-badge">BESTSELLER</div>
+                    @if(isset($product['badge']))
+                    <div class="product-badge 
+                        @if($product['badge'] == 'TRENDING') trending 
+                        @elseif($product['badge'] == 'NEW') new 
+                        @else bestseller @endif">
+                        {{ $product['badge'] }}
+                    </div>
+                    @endif
                     <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=201" alt="Product 1">
+                        <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
                         <div class="product-actions">
                             <button class="action-btn wishlist" title="Add to Wishlist">
                                 <i class="far fa-heart"></i>
@@ -208,215 +179,263 @@
                         </div>
                     </div>
                     <div class="product-info">
-                        <div class="brand-name">Jack & Jones</div>
-                        <a href="{{ route('product.detail', ['id' => 1, 'slug' => 'mens-printed-cotton-tshirt']) }}">
-                            <h3 class="product-title">Multi-Color Abstract Print Sliders</h3>
+                        <div class="brand-name">{{ $product['brand'] }}</div>
+                        <a href="{{ route('product.detail', ['id' => $product['id'], 'slug' => $product['slug'] ?? Str::slug($product['name'])]) }}">
+                            <h3 class="product-title">{{ $product['name'] }}</h3>
                         </a>
                         <div class="price-section">
-                            <span class="current-price">₹1,190</span>
-                            <span class="original-price">₹1,699</span>
-                            <span class="discount">30% off</span>
+                            <span class="current-price">₹{{ number_format($product['price']) }}</span>
+                            <span class="original-price">₹{{ number_format($product['original_price']) }}</span>
+                            <span class="discount">{{ $product['discount'] }}% off</span>
                         </div>
                         <button class="add-to-cart-btn" 
-                                data-id="1" 
-                                data-name="Multi-Color Abstract Print Sliders" 
-                                data-brand="Jack & Jones" 
-                                data-price="1190" 
-                                data-image="https://picsum.photos/300/300?random=201">
+                                data-id="{{ $product['id'] }}" 
+                                data-name="{{ $product['name'] }}" 
+                                data-brand="{{ $product['brand'] }}" 
+                                data-price="{{ $product['price'] }}" 
+                                data-image="{{ $product['image'] }}">
                             <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
                         </button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Product 2 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge trending">TRENDING</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=202" alt="Product 2">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn quick-view">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Puma</div>
-                        <a href="{{ route('product.detail', ['id' => 2, 'slug' => 'mens-running-shoes']) }}">
-                            <h3 class="product-title">Men's Running Shoes | Lightweight | White/Black</h3>
-                        </a>
-                        <div class="price-section">
-                            <span class="current-price">₹2,499</span>
-                            <span class="original-price">₹3,999</span>
-                            <span class="discount">37% off</span>
-                        </div>
-                        <button class="add-to-cart-btn" 
-                                data-id="2" 
-                                data-name="Men's Running Shoes" 
-                                data-brand="Puma" 
-                                data-price="2499" 
-                                data-image="https://picsum.photos/300/300?random=202">
-                            <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 3 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge new">NEW</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=203" alt="Product 3">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn quick-view">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Nike</div>
-                        <a href="{{ route('product.detail', ['id' => 3, 'slug' => 'mens-solid-tshirt']) }}">
-                            <h3 class="product-title">Men's Solid Regular Fit T-Shirt | Pure Cotton</h3>
-                        </a>
-                        <div class="price-section">
-                            <span class="current-price">₹1,799</span>
-                            <span class="original-price">₹2,499</span>
-                            <span class="discount">28% off</span>
-                        </div>
-                        <button class="add-to-cart-btn" 
-                                data-id="3" 
-                                data-name="Men's Solid Regular Fit T-Shirt" 
-                                data-brand="Nike" 
-                                data-price="1799" 
-                                data-image="https://picsum.photos/300/300?random=203">
-                            <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 4 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge">BESTSELLER</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=204" alt="Product 4">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn quick-view">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Levi's</div>
-                        <a href="{{ route('product.detail', ['id' => 4, 'slug' => 'womens-skinny-jeans']) }}">
-                            <h3 class="product-title">Women's Skinny Fit Jeans | Stretchable | Blue</h3>
-                        </a>
-                        <div class="price-section">
-                            <span class="current-price">₹2,299</span>
-                            <span class="original-price">₹3,299</span>
-                            <span class="discount">30% off</span>
-                        </div>
-                        <button class="add-to-cart-btn" 
-                                data-id="4" 
-                                data-name="Women's Skinny Fit Jeans" 
-                                data-brand="Levi's" 
-                                data-price="2299" 
-                                data-image="https://picsum.photos/300/300?random=204">
-                            <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 5 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge trending">TRENDING</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=205" alt="Product 5">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn quick-view">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Sony</div>
-                        <a href="{{ route('product.detail', ['id' => 5, 'slug' => 'wireless-headphones']) }}">
-                            <h3 class="product-title">Wireless Bluetooth Headphones | Noise Cancelling</h3>
-                        </a>
-                        <div class="price-section">
-                            <span class="current-price">₹3,999</span>
-                            <span class="original-price">₹5,999</span>
-                            <span class="discount">33% off</span>
-                        </div>
-                        <button class="add-to-cart-btn" 
-                                data-id="5" 
-                                data-name="Wireless Bluetooth Headphones" 
-                                data-brand="Sony" 
-                                data-price="3999" 
-                                data-image="https://picsum.photos/300/300?random=205">
-                            <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 6 -->
-            <div class="product-item">
-                <div class="modern-product-card">
-                    <div class="product-badge new">NEW</div>
-                    <div class="product-image">
-                        <img src="https://picsum.photos/300/300?random=206" alt="Product 6">
-                        <div class="product-actions">
-                            <button class="action-btn wishlist">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <button class="action-btn quick-view">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="brand-name">Fastrack</div>
-                        <a href="{{ route('product.detail', ['id' => 6, 'slug' => 'mens-analog-watch']) }}">
-                            <h3 class="product-title">Analog Watch - Men | Black Dial | Stainless Steel</h3>
-                        </a>
-                        <div class="price-section">
-                            <span class="current-price">₹1,995</span>
-                            <span class="original-price">₹2,995</span>
-                            <span class="discount">33% off</span>
-                        </div>
-                        <button class="add-to-cart-btn" 
-                                data-id="6" 
-                                data-name="Analog Watch - Men" 
-                                data-brand="Fastrack" 
-                                data-price="1995" 
-                                data-image="https://picsum.photos/300/300?random=206">
-                            <i class="fas fa-shopping-cart"></i> <span>Add to Cart</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
 @endsection
+
+@push('styles')
+<style>
+.category-card {
+    text-align: center;
+    padding: 15px 10px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    margin: 5px;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.category-image {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f5f5f5;
+    border: 3px solid #febd69;
+}
+
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.category-name span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-link {
+    text-decoration: none;
+}
+
+.category-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.category-nav:hover {
+    background: #febd69;
+    color: #131921;
+}
+
+.custom-nav-prev {
+    left: -20px;
+}
+
+.custom-nav-next {
+    right: -20px;
+}
+
+/* Modern Product Card */
+.modern-product-card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.modern-product-card:hover {
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ff4d4d;
+    color: white;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 3px;
+    z-index: 2;
+}
+
+.product-badge.trending {
+    background: #ff8c42;
+}
+
+.product-badge.new {
+    background: #4caf50;
+}
+
+.product-image {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.modern-product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.3s ease;
+}
+
+.modern-product-card:hover .product-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.action-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: #febd69;
+    color: #131921;
+}
+
+.product-info {
+    padding: 15px;
+}
+
+.brand-name {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.product-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    height: 36px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.price-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.current-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+}
+
+.original-price {
+    font-size: 12px;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.discount {
+    font-size: 12px;
+    color: #ff4d4d;
+    font-weight: 600;
+}
+
+.add-to-cart-btn {
+    width: 100%;
+    background: transparent;
+    border: 2px solid #333;
+    color: #333;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+    background: #333;
+    color: #fff;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -491,9 +510,7 @@
             }
         });
 
-        // ============================================
-        // ADD TO CART FUNCTIONALITY - FIXED
-        // ============================================
+        // Add to Cart
         $('.add-to-cart-btn').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -505,9 +522,6 @@
             let price = btn.data('price');
             let image = btn.data('image');
             
-            console.log('Adding to cart:', {id, name, brand, price, image});
-            
-            // Button animation
             let originalText = btn.html();
             btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
             btn.prop('disabled', true);
@@ -525,47 +539,26 @@
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {
-                    console.log('Add to cart success:', response);
-                    
                     if (response.success) {
-                        // Update cart count
                         $('.cart-count').text(response.cart_count);
                         $('.mobile-cart-count').text(response.cart_count);
                         
-                        // Animate cart
-                        $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
-                        setTimeout(function() {
-                            $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
-                        }, 1000);
-                        
-                        // Show success message
                         showNotification(response.message, 'success');
                         
-                        // Redirect to cart page
                         setTimeout(function() {
                             window.location.href = response.redirect;
                         }, 1000);
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.error('Add to cart error:', error);
-                    console.error('Response:', xhr.responseText);
-                    
+                error: function() {
                     btn.html(originalText);
                     btn.prop('disabled', false);
-                    
-                    let errorMessage = 'Error adding to cart';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    
-                    showNotification(errorMessage, 'error');
+                    showNotification('Error adding to cart', 'error');
                 }
             });
         });
         
-        // Notification function
-        function showNotification(message, type = 'info') {
+        function showNotification(message, type) {
             if (typeof toastr !== 'undefined') {
                 toastr[type](message);
             } else {

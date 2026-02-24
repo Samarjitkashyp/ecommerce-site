@@ -17,7 +17,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
-                'phone' => '9876543210',
+                'phone' => '8638894558',
                 'password' => Hash::make('admin123'),
                 'is_active' => true,
                 'is_admin' => true,
@@ -33,7 +33,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'email' => 'superadmin@example.com',
-                'phone' => '9876543211',
+                'phone' => '6666666666',
                 'password' => Hash::make('superadmin123'),
                 'is_active' => true,
                 'is_admin' => true,

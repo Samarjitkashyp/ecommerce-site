@@ -16,9 +16,11 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 
 // Home Page
-Route::get('/', function () {
-    return view('front.index');
-})->name('home');
+// Route::get('/', function () {
+//     return view('front.index');
+// })->name('home');
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // 🟢 FIXED: Auth Routes with proper naming
 Route::middleware('guest')->group(function () {

@@ -30,7 +30,7 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * GET ADMIN SIDEBAR MENU
+     * GET ADMIN SIDEBAR MENU - FIXED: Categories Uncommented
      */
     protected function getAdminMenu()
     {
@@ -61,6 +61,9 @@ abstract class AdminController extends Controller
                     ]
                 ]
             ],
+            // ============================================
+            // ✅ FIXED: Categories Menu UNCOMMENTED
+            // ============================================
             'categories' => [
                 'name' => 'Categories',
                 'icon' => 'fas fa-folder',
@@ -74,6 +77,22 @@ abstract class AdminController extends Controller
                     [
                         'name' => 'Add New',
                         'route' => 'admin.categories.create'
+                    ]
+                ]
+            ],
+            'home-categories' => [
+                'name' => 'Homepage Categories',
+                'icon' => 'fas fa-home',
+                'route' => 'admin.home-categories.index',
+                'permission' => 'home-categories.view',
+                'submenu' => [
+                    [
+                        'name' => 'All Categories',
+                        'route' => 'admin.home-categories.index'
+                    ],
+                    [
+                        'name' => 'Add New',
+                        'route' => 'admin.home-categories.create'
                     ]
                 ]
             ],

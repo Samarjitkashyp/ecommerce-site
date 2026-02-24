@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Test User',
             'email' => 'user@example.com',
-            'phone' => '9876543210',
+            'phone' => '1111111111',
             'password' => Hash::make('password'),
             'is_active' => true,
             'email_verified_at' => now(),
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'phone' => '9876543211',
+            'phone' => '3333333333',
             'password' => Hash::make('password123'),
             'is_active' => true,
             'email_verified_at' => now(),
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'phone' => '9876543212',
+            'phone' => '2222222222',
             'password' => Hash::make('admin123'),
             'is_active' => true,
             'email_verified_at' => now(),
