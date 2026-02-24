@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
-use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 use App\Models\Menu;
 
 /**
@@ -30,7 +30,7 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * GET ADMIN SIDEBAR MENU - FIXED: Categories Uncommented
+     * GET ADMIN SIDEBAR MENU
      */
     protected function getAdminMenu()
     {
@@ -47,53 +47,19 @@ abstract class AdminController extends Controller
                 'route' => 'admin.menus.index',
                 'permission' => 'menus.view',
                 'submenu' => [
-                    [
-                        'name' => 'All Menus',
-                        'route' => 'admin.menus.index'
-                    ],
-                    [
-                        'name' => 'Add New',
-                        'route' => 'admin.menus.create'
-                    ],
-                    [
-                        'name' => 'Menu Locations',
-                        'route' => 'admin.menus.locations'
-                    ]
+                    ['name' => 'All Menus', 'route' => 'admin.menus.index'],
+                    ['name' => 'Add New', 'route' => 'admin.menus.create'],
+                    ['name' => 'Menu Locations', 'route' => 'admin.menus.locations']
                 ]
             ],
-            // ============================================
-            // ✅ FIXED: Categories Menu UNCOMMENTED
-            // ============================================
-            'categories' => [
-                'name' => 'Categories',
-                'icon' => 'fas fa-folder',
-                'route' => 'admin.categories.index',
+            'product-categories' => [
+                'name' => 'Product Categories',
+                'icon' => 'fas fa-tags',
+                'route' => 'admin.product-categories.index',
                 'permission' => 'categories.view',
                 'submenu' => [
-                    [
-                        'name' => 'All Categories',
-                        'route' => 'admin.categories.index'
-                    ],
-                    [
-                        'name' => 'Add New',
-                        'route' => 'admin.categories.create'
-                    ]
-                ]
-            ],
-            'home-categories' => [
-                'name' => 'Homepage Categories',
-                'icon' => 'fas fa-home',
-                'route' => 'admin.home-categories.index',
-                'permission' => 'home-categories.view',
-                'submenu' => [
-                    [
-                        'name' => 'All Categories',
-                        'route' => 'admin.home-categories.index'
-                    ],
-                    [
-                        'name' => 'Add New',
-                        'route' => 'admin.home-categories.create'
-                    ]
+                    ['name' => 'All Categories', 'route' => 'admin.product-categories.index'],
+                    ['name' => 'Add New', 'route' => 'admin.product-categories.create']
                 ]
             ],
             'products' => [
@@ -102,18 +68,9 @@ abstract class AdminController extends Controller
                 'route' => 'admin.products.index',
                 'permission' => 'products.view',
                 'submenu' => [
-                    [
-                        'name' => 'All Products',
-                        'route' => 'admin.products.index'
-                    ],
-                    [
-                        'name' => 'Add New',
-                        'route' => 'admin.products.create'
-                    ],
-                    [
-                        'name' => 'Inventory',
-                        'route' => 'admin.products.inventory'
-                    ]
+                    ['name' => 'All Products', 'route' => 'admin.products.index'],
+                    ['name' => 'Add New', 'route' => 'admin.products.create'],
+                    ['name' => 'Inventory', 'route' => 'admin.products.inventory']
                 ]
             ],
             'orders' => [
@@ -122,26 +79,11 @@ abstract class AdminController extends Controller
                 'route' => 'admin.orders.index',
                 'permission' => 'orders.view',
                 'submenu' => [
-                    [
-                        'name' => 'All Orders',
-                        'route' => 'admin.orders.index'
-                    ],
-                    [
-                        'name' => 'Pending',
-                        'route' => 'admin.orders.pending'
-                    ],
-                    [
-                        'name' => 'Processing',
-                        'route' => 'admin.orders.processing'
-                    ],
-                    [
-                        'name' => 'Completed',
-                        'route' => 'admin.orders.completed'
-                    ],
-                    [
-                        'name' => 'Cancelled',
-                        'route' => 'admin.orders.cancelled'
-                    ]
+                    ['name' => 'All Orders', 'route' => 'admin.orders.index'],
+                    ['name' => 'Pending', 'route' => 'admin.orders.pending'],
+                    ['name' => 'Processing', 'route' => 'admin.orders.processing'],
+                    ['name' => 'Completed', 'route' => 'admin.orders.completed'],
+                    ['name' => 'Cancelled', 'route' => 'admin.orders.cancelled']
                 ]
             ],
             'users' => [
@@ -150,14 +92,8 @@ abstract class AdminController extends Controller
                 'route' => 'admin.users.index',
                 'permission' => 'users.view',
                 'submenu' => [
-                    [
-                        'name' => 'All Users',
-                        'route' => 'admin.users.index'
-                    ],
-                    [
-                        'name' => 'Add New',
-                        'route' => 'admin.users.create'
-                    ]
+                    ['name' => 'All Users', 'route' => 'admin.users.index'],
+                    ['name' => 'Add New', 'route' => 'admin.users.create']
                 ]
             ],
             'settings' => [
@@ -166,22 +102,10 @@ abstract class AdminController extends Controller
                 'route' => 'admin.settings',
                 'permission' => 'settings.view',
                 'submenu' => [
-                    [
-                        'name' => 'General',
-                        'route' => 'admin.settings.general'
-                    ],
-                    [
-                        'name' => 'SEO',
-                        'route' => 'admin.settings.seo'
-                    ],
-                    [
-                        'name' => 'Payment',
-                        'route' => 'admin.settings.payment'
-                    ],
-                    [
-                        'name' => 'Shipping',
-                        'route' => 'admin.settings.shipping'
-                    ]
+                    ['name' => 'General', 'route' => 'admin.settings.general'],
+                    ['name' => 'SEO', 'route' => 'admin.settings.seo'],
+                    ['name' => 'Payment', 'route' => 'admin.settings.payment'],
+                    ['name' => 'Shipping', 'route' => 'admin.settings.shipping']
                 ]
             ]
         ];
@@ -192,14 +116,51 @@ abstract class AdminController extends Controller
      */
     protected function getQuickStats()
     {
-        return [
-            'total_orders' => \App\Models\Order::count(),
-            'pending_orders' => \App\Models\Order::where('order_status', 'pending')->count(),
-            'total_users' => \App\Models\User::count(),
-            'total_products' => 0, // Add Product model count
-            'total_categories' => Category::count(),
-            'total_menus' => Menu::count()
-        ];
+        try {
+            $categoryCount = $this->getCategoryCount();
+            
+            return [
+                'total_orders' => \App\Models\Order::count(),
+                'pending_orders' => \App\Models\Order::where('order_status', 'pending')->count(),
+                'total_users' => \App\Models\User::count(),
+                'total_products' => 0,
+                'total_categories' => $categoryCount,
+                'total_menus' => Menu::count()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'total_orders' => 0,
+                'pending_orders' => 0,
+                'total_users' => 0,
+                'total_products' => 0,
+                'total_categories' => 0,
+                'total_menus' => 0
+            ];
+        }
+    }
+
+    /**
+     * Safely get category count
+     */
+    private function getCategoryCount()
+    {
+        $tables = DB::select('SHOW TABLES');
+        $databaseName = env('DB_DATABASE');
+        $tableKey = "Tables_in_{$databaseName}";
+        
+        $tableNames = array_map(function($table) use ($tableKey) {
+            return $table->$tableKey;
+        }, $tables);
+
+        if (in_array('product_categories', $tableNames)) {
+            return DB::table('product_categories')->count();
+        }
+        
+        if (in_array('categories', $tableNames)) {
+            return DB::table('categories')->count();
+        }
+        
+        return 0;
     }
 
     /**

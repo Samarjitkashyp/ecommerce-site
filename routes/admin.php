@@ -1,16 +1,15 @@
 <?php
-// routes/admin.php
+// routes/admin.php - FINAL VERSION
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductCategoryController; // 👈 SIRF YAHI EK CONTROLLER
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SearchController;
-use App\Http\Controllers\Admin\HomeCategoryController;
 
 Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(function() {
     
@@ -49,18 +48,38 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(func
     });
     
     // ============================================
-    // CATEGORY MANAGEMENT
+    // 🟢 PRODUCT CATEGORIES - SINGLE SOURCE OF TRUTH
+    // Yeh sirf ek controller hai - isi se sab hoga:
+    // - Categories add karna
+    // - Edit karna
+    // - Delete karna
+    // - Order change karna
+    // - Status toggle karna
+    // - Bulk delete karna
     // ============================================
-    Route::prefix('categories')->name('categories.')->controller(CategoryController::class)->group(function() {
+    Route::prefix('product-categories')->name('product-categories.')->controller(ProductCategoryController::class)->group(function() {
+        // List all categories
         Route::get('/', 'index')->name('index');
+        
+        // Create new category
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
-        Route::get('/{category}/edit', 'edit')->name('edit');
-        Route::put('/{category}', 'update')->name('update');
-        Route::delete('/{category}', 'destroy')->name('destroy');
+        
+        // Edit category
+        Route::get('/{productCategory}/edit', 'edit')->name('edit');
+        Route::put('/{productCategory}', 'update')->name('update');
+        
+        // Delete single category
+        Route::delete('/{productCategory}', 'destroy')->name('destroy');
+        
+        // Bulk delete
         Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
-        Route::post('/{category}/status', 'updateStatus')->name('status');
-        Route::get('/tree', 'getTree')->name('tree');
+        
+        // Update order (drag-drop)
+        Route::post('/update-order', 'updateOrder')->name('update-order');
+        
+        // Toggle status (active/inactive)
+        Route::post('/{productCategory}/toggle-status', 'toggleStatus')->name('toggle-status');
     });
     
     // ============================================
@@ -124,20 +143,5 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(func
         Route::post('/system', 'updateSystem')->name('system.update');
         Route::get('/api', 'api')->name('api');
         Route::post('/api', 'updateApi')->name('api.update');
-    });
-
-    // ============================================
-    // 🏠 HOME CATEGORY MANAGEMENT (VERIFIED & FIXED)
-    // ============================================
-    Route::prefix('home-categories')->name('home-categories.')->controller(HomeCategoryController::class)->group(function() {
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{homeCategory}/edit', 'edit')->name('edit');
-        Route::put('/{homeCategory}', 'update')->name('update');
-        Route::delete('/{homeCategory}', 'destroy')->name('destroy');
-        Route::post('/update-order', 'updateOrder')->name('update-order');
-        Route::post('/{homeCategory}/toggle-status', 'toggleStatus')->name('toggle-status');
-        Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
     });
 });

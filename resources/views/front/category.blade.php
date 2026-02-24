@@ -39,7 +39,7 @@
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-checkbox" type="checkbox" id="cat1" data-filter="category" data-value="fashion">
                                 <label class="form-check-label" for="cat1">
-                                    Fashion <span class="text-muted">(1245)</span>
+                                    Ethnic Wear <span class="text-muted">(1245)</span>
                                 </label>
                             </div>
                             <div class="form-check mb-2">

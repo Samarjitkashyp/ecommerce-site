@@ -3,23 +3,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HomeCategory;
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        // 🔥 FIXED: Get homepage categories from database
-        $homeCategories = HomeCategory::with('category')
-            ->where('is_active', true)
+        // 🟢 GET ACTIVE PRODUCT CATEGORIES FOR HOMEPAGE
+        $productCategories = ProductCategory::where('is_active', true)
             ->orderBy('sort_order')
+            ->orderBy('name')
             ->get();
 
-        // Featured products (your existing logic)
         $featuredProducts = $this->getFeaturedProducts();
 
-        return view('front.index', compact('homeCategories', 'featuredProducts'));
+        return view('front.index', compact('productCategories', 'featuredProducts'));
     }
 
     /**

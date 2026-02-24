@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\User;
-use App\Models\Category;
+use App\Models\ProductCategory;
 use App\Models\Menu;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +23,7 @@ class DashboardController extends AdminController
             'total_orders' => Order::count(),
             'total_revenue' => Order::where('payment_status', 'completed')->sum('total'),
             'total_users' => User::count(),
-            'total_categories' => Category::count(),
+            'total_categories' => ProductCategory::count(),
             'total_menus' => Menu::count(),
         ];
 
@@ -62,8 +62,6 @@ class DashboardController extends AdminController
     public function getStats(Request $request)
     {
         $period = $request->get('period', 'today');
-
-        // Calculate date range based on period
         $dates = $this->getDateRange($period);
 
         $stats = [

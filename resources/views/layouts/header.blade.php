@@ -35,7 +35,7 @@
     
     // CATEGORIES - Fallback if no sidebar menus exist
     // Also used for search dropdown
-    $allCategories = App\Models\Category::with('children')
+    $allCategories = App\Models\ProductCategory::with('children')
         ->whereNull('parent_id')
         ->where('is_active', true)
         ->orderBy('sort_order')

@@ -42,107 +42,28 @@
             <p class="text-muted">Explore our wide range of categories</p>
         </div>
         
-        <div class="category-slider-container position-relative">
-            <div class="category-nav custom-nav-prev">
-                <i class="fas fa-chevron-left"></i>
+        <div class="category-slider owl-carousel owl-theme">
+            @forelse($productCategories as $category)
+            <!-- Category Item -->
+            <div class="category-item">
+                <a href="{{ $category->url }}" class="category-link">
+                    <div class="category-card">
+                        <div class="category-image">
+                            <img src="{{ $category->image_url }}" 
+                                 alt="{{ $category->name }}"
+                                 loading="lazy">
+                        </div>
+                        <div class="category-name">
+                            <span>{{ $category->name }}</span>
+                        </div>
+                    </div>
+                </a>
             </div>
-            <div class="category-nav custom-nav-next">
-                <i class="fas fa-chevron-right"></i>
+            @empty
+            <div class="col-12 text-center">
+                <p>No categories available</p>
             </div>
-            
-            <div class="category-slider owl-carousel owl-theme">
-                @forelse($homeCategories as $item)
-                <!-- Category Item -->
-                <div class="category-item">
-                    <a href="{{ $item->url }}" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="{{ $item->display_image }}" 
-                                     alt="{{ $item->display_name }}"
-                                     loading="lazy">
-                            </div>
-                            <div class="category-name">
-                                <span>{{ $item->display_name }}</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                @empty
-                <!-- Fallback if no categories in database -->
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=1" alt="Fashion">
-                            </div>
-                            <div class="category-name">
-                                <span>Fashion</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=2" alt="Electronics">
-                            </div>
-                            <div class="category-name">
-                                <span>Electronics</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=3" alt="Home & Kitchen">
-                            </div>
-                            <div class="category-name">
-                                <span>Home & Kitchen</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=4" alt="Books">
-                            </div>
-                            <div class="category-name">
-                                <span>Books</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=5" alt="Sports">
-                            </div>
-                            <div class="category-name">
-                                <span>Sports</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="category-item">
-                    <a href="#" class="category-link">
-                        <div class="category-card">
-                            <div class="category-image">
-                                <img src="https://picsum.photos/200/200?random=6" alt="Toys & Baby">
-                            </div>
-                            <div class="category-name">
-                                <span>Toys & Baby</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                @endforelse
-            </div>
+            @endforelse
         </div>
     </div>
 </section>
@@ -207,9 +128,12 @@
 
 @push('styles')
 <style>
+/* ============================================
+   CATEGORY SLIDER STYLES
+   ============================================ */
 .category-card {
     text-align: center;
-    padding: 15px 10px;
+    padding: 20px 10px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -250,37 +174,94 @@
     text-decoration: none;
 }
 
-.category-nav {
+.category-slider.owl-carousel .owl-nav{
+    display: flex !important;
+    justify-content: space-between;
+    aligin-items: center;
+}
+
+.category-slider .owl-nav button{
+    width: 50px !important;
+    height: 50px !important;
+}
+
+/* ============================================
+   OWL CAROUSEL CUSTOM NAVIGATION
+   ============================================ */
+.owl-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    width: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    justify-content: space-between;
+    pointer-events: none;
     z-index: 10;
-    transition: all 0.3s ease;
 }
 
-.category-nav:hover {
-    background: #febd69;
+.owl-nav button {
+    pointer-events: auto;
+    width: 40px;
+    height: 40px;
+    background: white !important;
+    border-radius: 50% !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin: 0 -20px !important;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0 !important;
+}
+
+.owl-nav button:hover {
+    background: #febd69 !important;
+    color: #131921 !important;
+    transform: scale(1.1);
+    border-color: #febd69 !important;
+}
+
+.owl-nav button i {
+    font-size: 16px;
+    color: #333;
+}
+
+.owl-nav button:hover i {
     color: #131921;
 }
 
-.custom-nav-prev {
-    left: -20px;
+/* Hide navigation on mobile */
+@media (max-width: 767px) {
+    .owl-nav {
+        display: none;
+    }
 }
 
-.custom-nav-next {
-    right: -20px;
+/* Dots styling */
+.owl-dots {
+    text-align: center;
+    margin-top: 20px;
 }
 
-/* Modern Product Card */
+.owl-dots .owl-dot {
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.owl-dots .owl-dot span {
+    width: 10px;
+    height: 10px;
+    background: #ddd;
+    border-radius: 50%;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.owl-dots .owl-dot.active span {
+    background: #febd69;
+    transform: scale(1.2);
+}
+
+/* ============================================
+   MODERN PRODUCT CARD STYLES
+   ============================================ */
 .modern-product-card {
     background: #fff;
     border-radius: 10px;
@@ -314,6 +295,10 @@
 
 .product-badge.new {
     background: #4caf50;
+}
+
+.product-badge.bestseller {
+    background: #ff4d4d;
 }
 
 .product-image {
@@ -360,6 +345,9 @@
     color: #333;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .action-btn:hover {
@@ -434,137 +422,272 @@
     background: #333;
     color: #fff;
 }
+
+/* ============================================
+   MAIN SLIDER STYLES
+   ============================================ */
+.slider-section {
+    position: relative;
+}
+
+.main-slider .owl-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.main-slider .owl-nav button {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.8) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin: 0 !important;
+    transition: all 0.3s ease;
+}
+
+.main-slider .owl-nav button:hover {
+    background: #febd69 !important;
+}
+
+.main-slider .owl-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.slide-bg {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slide-bg img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+/* ============================================
+   RESPONSIVE FIXES
+   ============================================ */
+@media (max-width: 576px) {
+    .category-image {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .category-name span {
+        font-size: 12px;
+    }
+    
+    .product-title {
+        font-size: 13px;
+        height: 34px;
+    }
+    
+    .current-price {
+        font-size: 14px;
+    }
+    
+    .slide-bg {
+        min-height: 200px;
+    }
+    
+    .slide-bg img {
+        max-height: 200px;
+    }
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        'use strict';
-        
-        // Main Banner Slider
-        $('.main-slider').owlCarousel({
-            items: 1,
-            loop: true,
-            margin: 0,
-            nav: true,
-            dots: true,
-            autoplay: true,
-            autoplayTimeout: 5000,
-            autoplayHoverPause: true,
-            smartSpeed: 1000,
-            animateOut: 'fadeOut',
-            animateIn: 'fadeIn',
-            navText: [
-                '<i class="fas fa-chevron-left"></i>',
-                '<i class="fas fa-chevron-right"></i>'
-            ],
-            responsive: {
-                0: { nav: false, dots: true },
-                768: { nav: true, dots: true }
-            }
-        });
-        
-        // Category Slider
-        $('.category-slider').owlCarousel({
-            loop: true,
-            margin: 20,
-            nav: true,
-            dots: true,
-            autoplay: true,
-            autoplayTimeout: 4000,
-            autoplayHoverPause: true,
-            smartSpeed: 800,
-            navText: [
-                '<i class="fas fa-chevron-left"></i>',
-                '<i class="fas fa-chevron-right"></i>'
-            ],
-            responsive: {
-                0: { items: 2, nav: false, dots: true },
-                576: { items: 3, nav: false, dots: true },
-                768: { items: 4, nav: true, dots: false },
-                992: { items: 5, nav: true, dots: false },
-                1200: { items: 6, nav: true, dots: false }
-            }
-        });
-        
-        // Products Slider
-        $('.product-slider').owlCarousel({
-            loop: true,
-            margin: 20,
-            nav: true,
-            dots: true,
-            autoplay: true,
-            autoplayTimeout: 4000,
-            autoplayHoverPause: true,
-            smartSpeed: 800,
-            navText: [
-                '<i class="fas fa-chevron-left"></i>',
-                '<i class="fas fa-chevron-right"></i>'
-            ],
-            responsive: {
-                0: { items: 1, nav: false, dots: true },
-                576: { items: 2, nav: false, dots: true },
-                768: { items: 3, nav: true, dots: false },
-                992: { items: 4, nav: true, dots: false }
-            }
-        });
-
-        // Add to Cart
-        $('.add-to-cart-btn').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            let btn = $(this);
-            let id = btn.data('id');
-            let name = btn.data('name');
-            let brand = btn.data('brand');
-            let price = btn.data('price');
-            let image = btn.data('image');
-            
-            let originalText = btn.html();
-            btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-            btn.prop('disabled', true);
-            
-            $.ajax({
-                url: '{{ route("cart.add") }}',
-                type: 'POST',
-                data: {
-                    id: id,
-                    name: name,
-                    brand: brand,
-                    price: price,
-                    image: image,
-                    quantity: 1,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $('.cart-count').text(response.cart_count);
-                        $('.mobile-cart-count').text(response.cart_count);
-                        
-                        showNotification(response.message, 'success');
-                        
-                        setTimeout(function() {
-                            window.location.href = response.redirect;
-                        }, 1000);
-                    }
-                },
-                error: function() {
-                    btn.html(originalText);
-                    btn.prop('disabled', false);
-                    showNotification('Error adding to cart', 'error');
-                }
-            });
-        });
-        
-        function showNotification(message, type) {
-            if (typeof toastr !== 'undefined') {
-                toastr[type](message);
-            } else {
-                alert(message);
+$(document).ready(function() {
+    'use strict';
+    
+    // ============================================
+    // MAIN BANNER SLIDER
+    // ============================================
+    $('.main-slider').owlCarousel({
+        items: 1,
+        loop: true,
+        margin: 0,
+        nav: true,
+        dots: true,
+        autoplay: true,
+        autoplayTimeout: 5000,
+        autoplayHoverPause: true,
+        smartSpeed: 1000,
+        animateOut: 'fadeOut',
+        animateIn: 'fadeIn',
+        navText: [
+            '<i class="fas fa-chevron-left"></i>',
+            '<i class="fas fa-chevron-right"></i>'
+        ],
+        responsive: {
+            0: { 
+                nav: false, 
+                dots: true 
+            },
+            768: { 
+                nav: true, 
+                dots: true 
             }
         }
     });
+    
+    // ============================================
+    // CATEGORY SLIDER - FIXED WITH ARROWS
+    // ============================================
+    $('.category-slider').owlCarousel({
+        loop: true,
+        margin: 20,
+        nav: true,              // ✅ Navigation arrows enable
+        dots: true,
+        autoplay: true,
+        autoplayTimeout: 4000,
+        autoplayHoverPause: true,
+        smartSpeed: 800,
+        navText: [              // ✅ Arrow icons
+            '<i class="fas fa-chevron-left"></i>',
+            '<i class="fas fa-chevron-right"></i>'
+        ],
+        responsive: {
+            0: { 
+                items: 2, 
+                nav: false,      // Mobile par arrows nahi
+                dots: true 
+            },
+            576: { 
+                items: 3, 
+                nav: false, 
+                dots: true 
+            },
+            768: { 
+                items: 4, 
+                nav: true,       // Tablet se arrows
+                dots: false 
+            },
+            992: { 
+                items: 5, 
+                nav: true, 
+                dots: false 
+            },
+            1200: { 
+                items: 6, 
+                nav: true, 
+                dots: false 
+            }
+        }
+    });
+    
+    // ============================================
+    // PRODUCTS SLIDER
+    // ============================================
+    $('.product-slider').owlCarousel({
+        loop: true,
+        margin: 20,
+        nav: true,
+        dots: true,
+        autoplay: true,
+        autoplayTimeout: 4000,
+        autoplayHoverPause: true,
+        smartSpeed: 800,
+        navText: [
+            '<i class="fas fa-chevron-left"></i>',
+            '<i class="fas fa-chevron-right"></i>'
+        ],
+        responsive: {
+            0: { 
+                items: 1, 
+                nav: false, 
+                dots: true 
+            },
+            576: { 
+                items: 2, 
+                nav: false, 
+                dots: true 
+            },
+            768: { 
+                items: 3, 
+                nav: true, 
+                dots: false 
+            },
+            992: { 
+                items: 4, 
+                nav: true, 
+                dots: false 
+            }
+        }
+    });
+
+    // ============================================
+    // ADD TO CART FUNCTIONALITY
+    // ============================================
+    $('.add-to-cart-btn').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let btn = $(this);
+        let id = btn.data('id');
+        let name = btn.data('name');
+        let brand = btn.data('brand');
+        let price = btn.data('price');
+        let image = btn.data('image');
+        
+        let originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        btn.prop('disabled', true);
+        
+        $.ajax({
+            url: '{{ route("cart.add") }}',
+            type: 'POST',
+            data: {
+                id: id,
+                name: name,
+                brand: brand,
+                price: price,
+                image: image,
+                quantity: 1,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('.cart-count').text(response.cart_count);
+                    $('.mobile-cart-count').text(response.cart_count);
+                    
+                    showNotification(response.message, 'success');
+                    
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 1000);
+                }
+            },
+            error: function() {
+                btn.html(originalText);
+                btn.prop('disabled', false);
+                showNotification('Error adding to cart', 'error');
+            }
+        });
+    });
+    
+    // ============================================
+    // NOTIFICATION FUNCTION
+    // ============================================
+    function showNotification(message, type) {
+        if (typeof toastr !== 'undefined') {
+            toastr[type](message);
+        } else {
+            alert(message);
+        }
+    }
+});
 </script>
 @endpush

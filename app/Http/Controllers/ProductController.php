@@ -19,7 +19,7 @@ class ProductController extends Controller
                 'discount' => 68,
                 'rating' => 4.3,
                 'reviews' => 3245,
-                'category' => 'fashion',
+                'category' => 'Ethnic Wear',
                 'subcategory' => 'mens-clothing',
                 'slug' => 'mens-printed-cotton-tshirt',
                 'images' => [
