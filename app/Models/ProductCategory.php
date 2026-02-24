@@ -129,4 +129,16 @@ class ProductCategory extends Model
     {
         return $query->whereNull('parent_id');
     }
+
+    // Add this relationship to get products
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
+    // Add this accessor for product count
+    public function getProductsCountAttribute()
+    {
+        return $this->products()->where('is_active', true)->count();
+    }
 }

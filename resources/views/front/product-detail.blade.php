@@ -196,12 +196,22 @@
                         </div>
                     </div>
                     
-                    {{-- 🔥 DYNAMIC: Color Selection --}}
-                    @if(!empty($product->colors) && count($product->colors) > 0)
+                    {{-- 🔥 FIXED: Color Selection with JSON decoding --}}
+                    @php
+                        $colors = $product->colors;
+                        // Decode JSON if it's a string
+                        if (is_string($colors)) {
+                            $colors = json_decode($colors, true) ?? [];
+                        }
+                        // Ensure it's an array
+                        $colors = is_array($colors) ? $colors : [];
+                    @endphp
+                    
+                    @if(!empty($colors))
                     <div class="color-section mb-3">
-                        <h5 class="section-subtitle">Color: <span class="selected-color">{{ $product->colors[0] }}</span></h5>
+                        <h5 class="section-subtitle">Color: <span class="selected-color">{{ $colors[0] ?? 'N/A' }}</span></h5>
                         <div class="color-options">
-                            @foreach($product->colors as $color)
+                            @foreach($colors as $color)
                             @php
                                 $colorCode = match($color) {
                                     'Navy Blue' => '#000080',
@@ -227,15 +237,25 @@
                     </div>
                     @endif
                     
-                    {{-- 🔥 DYNAMIC: Size Selection --}}
-                    @if(!empty($product->sizes) && count($product->sizes) > 0)
+                    {{-- 🔥 FIXED: Size Selection with JSON decoding --}}
+                    @php
+                        $sizes = $product->sizes;
+                        // Decode JSON if it's a string
+                        if (is_string($sizes)) {
+                            $sizes = json_decode($sizes, true) ?? [];
+                        }
+                        // Ensure it's an array
+                        $sizes = is_array($sizes) ? $sizes : [];
+                    @endphp
+                    
+                    @if(!empty($sizes))
                     <div class="size-section mb-3">
                         <div class="d-flex justify-content-between">
                             <h5 class="section-subtitle">Select Size</h5>
                             <a href="#" class="size-chart-link"><i class="fas fa-ruler"></i> Size Chart</a>
                         </div>
                         <div class="size-options">
-                            @foreach($product->sizes as $size)
+                            @foreach($sizes as $size)
                             <div class="size-option {{ $loop->first ? 'active' : '' }}">{{ $size }}</div>
                             @endforeach
                         </div>
@@ -302,12 +322,22 @@
                         </div>
                     </div>
                     
-                    {{-- 🔥 DYNAMIC: Product Highlights --}}
-                    @if(!empty($product->highlights) && count($product->highlights) > 0)
+                    {{-- 🔥 FIXED: Product Highlights with JSON decoding --}}
+                    @php
+                        $highlights = $product->highlights;
+                        // Decode JSON if it's a string
+                        if (is_string($highlights)) {
+                            $highlights = json_decode($highlights, true) ?? [];
+                        }
+                        // Ensure it's an array
+                        $highlights = is_array($highlights) ? $highlights : [];
+                    @endphp
+                    
+                    @if(!empty($highlights))
                     <div class="product-highlights mt-3">
                         <h5 class="section-subtitle">Product Highlights</h5>
                         <ul class="highlights-list">
-                            @foreach($product->highlights as $highlight)
+                            @foreach($highlights as $highlight)
                             <li><i class="fas fa-check-circle"></i> {{ $highlight }}</li>
                             @endforeach
                         </ul>
@@ -423,27 +453,52 @@
                     <h5>Product Description</h5>
                     <p>{{ $product->description ?? 'No description available.' }}</p>
                     
-                    {{-- 🔥 DYNAMIC: Highlights in description --}}
-                    @if(!empty($product->highlights))
+                    {{-- 🔥 FIXED: Highlights in description --}}
+                    @php
+                        $descHighlights = $product->highlights;
+                        if (is_string($descHighlights)) {
+                            $descHighlights = json_decode($descHighlights, true) ?? [];
+                        }
+                        $descHighlights = is_array($descHighlights) ? $descHighlights : [];
+                    @endphp
+                    
+                    @if(!empty($descHighlights))
                     <h6 class="mt-3">Key Features:</h6>
                     <ul>
-                        @foreach($product->highlights as $highlight)
+                        @foreach($descHighlights as $highlight)
                         <li>{{ $highlight }}</li>
                         @endforeach
                     </ul>
                     @endif
                 </div>
                 
-                {{-- 🔥 DYNAMIC: Specifications Tab --}}
+                {{-- 🔥 FIXED: Specifications Tab --}}
                 @if(!empty($product->specifications))
                 <div class="tab-pane fade" id="specifications" role="tabpanel">
                     <h5>Product Specifications</h5>
                     <table class="table table-striped">
-                        @foreach($product->specifications as $key => $value)
-                        <tr>
-                            <th>{{ is_numeric($key) ? 'Specification' : ucwords(str_replace('_', ' ', $key)) }}</th>
-                            <td>{{ $value }}</td>
-                        </tr>
+                        @php
+                            $specs = $product->specifications;
+                            if (is_string($specs)) {
+                                $specs = json_decode($specs, true) ?? [];
+                            }
+                            $specs = is_array($specs) ? $specs : [];
+                        @endphp
+                        
+                        @foreach($specs as $key => $value)
+                            @if(is_array($value))
+                                @foreach($value as $subKey => $subValue)
+                                <tr>
+                                    <th>{{ ucwords(str_replace('_', ' ', $subKey)) }}</th>
+                                    <td>{{ is_array($subValue) ? implode(', ', $subValue) : $subValue }}</td>
+                                </tr>
+                                @endforeach
+                            @else
+                            <tr>
+                                <th>{{ is_numeric($key) ? 'Specification' : ucwords(str_replace('_', ' ', $key)) }}</th>
+                                <td>{{ $value }}</td>
+                            </tr>
+                            @endif
                         @endforeach
                     </table>
                 </div>

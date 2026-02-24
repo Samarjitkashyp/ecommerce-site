@@ -42,6 +42,8 @@ Route::get('/category/{category}', [CategoryController::class, 'show'])->name('c
 // Product Routes
 Route::get('/product/{id}/{slug?}', [ProductController::class, 'show'])->name('product.detail');
 
+Route::get('/product/quick-view/{id}', [ProductController::class, 'quickView'])->name('product.quick-view');
+
 // Cart Routes (public - session based)
 Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');

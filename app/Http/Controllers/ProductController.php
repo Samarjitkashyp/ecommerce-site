@@ -90,6 +90,19 @@ class ProductController extends Controller
     }
 
     /**
+     * Quick view product details
+     */
+    public function quickView($id)
+    {
+        $product = Product::with('category')
+            ->where('id', $id)
+            ->where('is_active', true)
+            ->firstOrFail();
+        
+        return view('front.partials.quick-view', compact('product'));
+    }
+
+    /**
      * ============================================
      * ADD TO RECENTLY VIEWED
      * Session mein store karo recently viewed products

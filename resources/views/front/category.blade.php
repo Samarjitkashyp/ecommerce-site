@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', $categoryInfo['title'] ?? 'Category - Products')
+@section('title', $categoryInfo->name . ' - Products')
 
 @section('content')
 <!-- Breadcrumb Section -->
@@ -10,7 +10,7 @@
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none">Home</a></li>
                 <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Products</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ $categoryInfo['name'] ?? 'Category' }}</li>
+                <li class="breadcrumb-item active" aria-current="page">{{ $categoryInfo->name }}</li>
             </ol>
         </nav>
     </div>
@@ -32,43 +32,33 @@
                         <button class="btn btn-link text-decoration-none p-0 clear-all" id="clearAllFilters">Clear All</button>
                     </div>
                     
-                    <!-- Category Filter -->
+                    <!-- Category Description -->
+                    @if($categoryInfo->description)
                     <div class="filter-section">
-                        <h6 class="filter-title">CATEGORIES</h6>
+                        <p class="text-muted small">{{ $categoryInfo->description }}</p>
+                    </div>
+                    @endif
+                    
+                    <!-- Subcategories Filter -->
+                    @if($subcategories->count() > 0)
+                    <div class="filter-section">
+                        <h6 class="filter-title">SUBCATEGORIES</h6>
                         <div class="filter-options">
+                            @foreach($subcategories as $subcat)
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="cat1" data-filter="category" data-value="fashion">
-                                <label class="form-check-label" for="cat1">
-                                    Ethnic Wear <span class="text-muted">(1245)</span>
+                                <input class="form-check-input filter-checkbox" type="checkbox" 
+                                       id="subcat{{ $subcat->id }}" 
+                                       data-filter="subcategory" 
+                                       data-value="{{ $subcat->id }}">
+                                <label class="form-check-label" for="subcat{{ $subcat->id }}">
+                                    {{ $subcat->name }} 
+                                    <span class="text-muted">({{ $subcat->products_count ?? 0 }})</span>
                                 </label>
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="cat2" data-filter="category" data-value="electronics">
-                                <label class="form-check-label" for="cat2">
-                                    Electronics <span class="text-muted">(893)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="cat3" data-filter="category" data-value="home-kitchen">
-                                <label class="form-check-label" for="cat3">
-                                    Home & Kitchen <span class="text-muted">(567)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="cat4" data-filter="category" data-value="books">
-                                <label class="form-check-label" for="cat4">
-                                    Books <span class="text-muted">(432)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="cat5" data-filter="category" data-value="sports">
-                                <label class="form-check-label" for="cat5">
-                                    Sports <span class="text-muted">(321)</span>
-                                </label>
-                            </div>
-                            <a href="#" class="view-more-link" id="viewMoreCategories">+ 5 more</a>
+                            @endforeach
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Price Filter -->
                     <div class="filter-section">
@@ -76,33 +66,23 @@
                         <div class="filter-options">
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-radio" type="radio" name="price" id="price1" data-filter="price" data-value="under-500">
-                                <label class="form-check-label" for="price1">
-                                    Under ₹500 <span class="text-muted">(1245)</span>
-                                </label>
+                                <label class="form-check-label" for="price1">Under ₹500</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-radio" type="radio" name="price" id="price2" data-filter="price" data-value="500-1000">
-                                <label class="form-check-label" for="price2">
-                                    ₹500 - ₹1000 <span class="text-muted">(893)</span>
-                                </label>
+                                <label class="form-check-label" for="price2">₹500 - ₹1000</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-radio" type="radio" name="price" id="price3" data-filter="price" data-value="1000-5000">
-                                <label class="form-check-label" for="price3">
-                                    ₹1000 - ₹5000 <span class="text-muted">(567)</span>
-                                </label>
+                                <label class="form-check-label" for="price3">₹1000 - ₹5000</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-radio" type="radio" name="price" id="price4" data-filter="price" data-value="5000-10000">
-                                <label class="form-check-label" for="price4">
-                                    ₹5000 - ₹10000 <span class="text-muted">(432)</span>
-                                </label>
+                                <label class="form-check-label" for="price4">₹5000 - ₹10000</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input filter-radio" type="radio" name="price" id="price5" data-filter="price" data-value="over-10000">
-                                <label class="form-check-label" for="price5">
-                                    Over ₹10000 <span class="text-muted">(321)</span>
-                                </label>
+                                <label class="form-check-label" for="price5">Over ₹10000</label>
                             </div>
                         </div>
                         
@@ -123,70 +103,44 @@
                     </div>
                     
                     <!-- Brand Filter -->
+                    @if($brands->count() > 0)
                     <div class="filter-section">
                         <h6 class="filter-title">BRAND</h6>
                         <div class="filter-options">
+                            @foreach($brands as $brand)
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="brand1" data-filter="brand" data-value="nike">
-                                <label class="form-check-label" for="brand1">
-                                    Nike <span class="text-muted">(245)</span>
+                                <input class="form-check-input filter-checkbox" type="checkbox" 
+                                       id="brand{{ $loop->index }}" 
+                                       data-filter="brand" 
+                                       data-value="{{ $brand }}">
+                                <label class="form-check-label" for="brand{{ $loop->index }}">
+                                    {{ $brand }}
                                 </label>
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="brand2" data-filter="brand" data-value="adidas">
-                                <label class="form-check-label" for="brand2">
-                                    Adidas <span class="text-muted">(193)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="brand3" data-filter="brand" data-value="puma">
-                                <label class="form-check-label" for="brand3">
-                                    Puma <span class="text-muted">(167)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="brand4" data-filter="brand" data-value="levis">
-                                <label class="form-check-label" for="brand4">
-                                    Levi's <span class="text-muted">(132)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="brand5" data-filter="brand" data-value="sony">
-                                <label class="form-check-label" for="brand5">
-                                    Sony <span class="text-muted">(98)</span>
-                                </label>
-                            </div>
-                            <a href="#" class="view-more-link" id="viewMoreBrands">+ 10 more</a>
+                            @endforeach
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Rating Filter -->
                     <div class="filter-section">
                         <h6 class="filter-title">CUSTOMER RATINGS</h6>
                         <div class="filter-options">
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating1" data-filter="rating" data-value="4">
-                                <label class="form-check-label" for="rating1">
-                                    4★ & above <span class="text-muted">(1245)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating4" data-filter="rating" data-value="4">
+                                <label class="form-check-label" for="rating4">4★ & above</label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating2" data-filter="rating" data-value="3">
-                                <label class="form-check-label" for="rating2">
-                                    3★ & above <span class="text-muted">(893)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating3" data-filter="rating" data-value="3">
+                                <label class="form-check-label" for="rating3">3★ & above</label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating3" data-filter="rating" data-value="2">
-                                <label class="form-check-label" for="rating3">
-                                    2★ & above <span class="text-muted">(567)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating2" data-filter="rating" data-value="2">
+                                <label class="form-check-label" for="rating2">2★ & above</label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating4" data-filter="rating" data-value="1">
-                                <label class="form-check-label" for="rating4">
-                                    1★ & above <span class="text-muted">(432)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="rating1" data-filter="rating" data-value="1">
+                                <label class="form-check-label" for="rating1">1★ & above</label>
                             </div>
                         </div>
                     </div>
@@ -196,53 +150,16 @@
                         <h6 class="filter-title">DISCOUNT</h6>
                         <div class="filter-options">
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount1" data-filter="discount" data-value="50">
-                                <label class="form-check-label" for="discount1">
-                                    50% or more <span class="text-muted">(445)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount50" data-filter="discount" data-value="50">
+                                <label class="form-check-label" for="discount50">50% or more</label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount2" data-filter="discount" data-value="40">
-                                <label class="form-check-label" for="discount2">
-                                    40% or more <span class="text-muted">(693)</span>
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount40" data-filter="discount" data-value="40">
+                                <label class="form-check-label" for="discount40">40% or more</label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount3" data-filter="discount" data-value="30">
-                                <label class="form-check-label" for="discount3">
-                                    30% or more <span class="text-muted">(867)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount4" data-filter="discount" data-value="20">
-                                <label class="form-check-label" for="discount4">
-                                    20% or more <span class="text-muted">(932)</span>
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount5" data-filter="discount" data-value="10">
-                                <label class="form-check-label" for="discount5">
-                                    10% or more <span class="text-muted">(1123)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Availability Filter -->
-                    <div class="filter-section">
-                        <h6 class="filter-title">AVAILABILITY</h6>
-                        <div class="filter-options">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="avail1" data-filter="availability" data-value="out-of-stock" checked>
-                                <label class="form-check-label" for="avail1">
-                                    Include Out of Stock
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input filter-checkbox" type="checkbox" id="avail2" data-filter="availability" data-value="ready-to-dispatch">
-                                <label class="form-check-label" for="avail2">
-                                    Ready to Dispatch
-                                </label>
+                                <input class="form-check-input filter-checkbox" type="checkbox" id="discount30" data-filter="discount" data-value="30">
+                                <label class="form-check-label" for="discount30">30% or more</label>
                             </div>
                         </div>
                     </div>
@@ -260,7 +177,12 @@
             <div class="col-lg-9">
                 <!-- Page Header -->
                 <div class="category-header d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0" id="categoryTitle">{{ $categoryInfo['title'] ?? 'Category' }} (<span id="productCount">{{ number_format($categoryInfo['products_count'] ?? 0) }}</span> Products)</h4>
+                    <div>
+                        <h4 class="mb-0" id="categoryTitle">
+                            {{ $categoryInfo->name }} 
+                            (<span id="productCount">{{ $products->total() }}</span> Products)
+                        </h4>
+                    </div>
                     
                     <!-- Sort By Dropdown -->
                     <div class="sort-by d-flex align-items-center">
@@ -271,7 +193,6 @@
                             <option value="price-high">Price - High to Low</option>
                             <option value="newest">Newest First</option>
                             <option value="discount">Discount</option>
-                            <option value="rating">Customer Rating</option>
                         </select>
                     </div>
                 </div>
@@ -287,55 +208,58 @@
                     <div class="row g-3" id="productsContainer">
                         @forelse($products as $product)
                         <!-- Product -->
-                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 product-item" data-id="{{ $product['id'] }}">
+                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 product-item" data-id="{{ $product->id }}">
                             <div class="modern-product-card">
-                                @if(isset($product['badge']))
+                                @if($product->badge)
                                 <div class="product-badge 
-                                    @if($product['badge'] == 'TRENDING') trending 
-                                    @elseif($product['badge'] == 'NEW') new 
+                                    @if($product->badge == 'TRENDING') trending 
+                                    @elseif($product->badge == 'NEW') new 
                                     @else bestseller @endif">
-                                    {{ $product['badge'] }}
+                                    {{ $product->badge }}
                                 </div>
                                 @endif
                                 <div class="product-image">
-                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
+                                    <img src="{{ $product->main_image ?? 'https://picsum.photos/300/300?random='.$product->id }}" 
+                                         alt="{{ $product->name }}">
                                     <div class="product-actions">
-                                        <button class="action-btn wishlist-btn" title="Add to Wishlist" data-id="{{ $product['id'] }}">
+                                        <button class="action-btn wishlist-btn" title="Add to Wishlist" data-id="{{ $product->id }}">
                                             <i class="far fa-heart"></i>
                                         </button>
-                                        <button class="action-btn quick-view-btn" title="Quick View" data-id="{{ $product['id'] }}">
+                                        <button class="action-btn quick-view-btn" title="Quick View" data-id="{{ $product->id }}">
                                             <i class="far fa-eye"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="product-info">
-                                    <div class="brand-name">{{ $product['brand'] }}</div>
-                                    <a href="{{ route('product.detail', ['id' => $product['id'], 'slug' => $product['slug'] ?? Str::slug($product['name'])]) }}" class="text-decoration-none">
-                                        <h3 class="product-title">{{ $product['name'] }}</h3>
+                                    <div class="brand-name">{{ $product->brand }}</div>
+                                    <a href="{{ $product->url }}" class="text-decoration-none">
+                                        <h3 class="product-title">{{ $product->name }}</h3>
                                     </a>
                                     <div class="price-section">
-                                        <span class="current-price">₹{{ number_format($product['price']) }}</span>
-                                        <span class="original-price">₹{{ number_format($product['original_price']) }}</span>
-                                        <span class="discount">{{ $product['discount'] }}% off</span>
+                                        <span class="current-price">₹{{ number_format($product->price) }}</span>
+                                        @if($product->original_price && $product->original_price > $product->price)
+                                            <span class="original-price">₹{{ number_format($product->original_price) }}</span>
+                                            <span class="discount">{{ $product->discount_percentage }}% off</span>
+                                        @endif
                                     </div>
                                     <div class="product-rating mt-2">
                                         @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= floor($product['rating']))
+                                            @if($i <= floor($product->rating))
                                                 <i class="fas fa-star text-warning"></i>
-                                            @elseif($i == ceil($product['rating']) && $product['rating'] - floor($product['rating']) >= 0.5)
+                                            @elseif($i == ceil($product->rating) && $product->rating - floor($product->rating) >= 0.5)
                                                 <i class="fas fa-star-half-alt text-warning"></i>
                                             @else
                                                 <i class="far fa-star text-warning"></i>
                                             @endif
                                         @endfor
-                                        <span class="rating-count">({{ number_format($product['reviews']) }})</span>
+                                        <span class="rating-count">({{ number_format($product->reviews_count) }})</span>
                                     </div>
                                     <button class="add-to-cart-btn mt-3" 
-                                            data-id="{{ $product['id'] }}"
-                                            data-name="{{ $product['name'] }}"
-                                            data-brand="{{ $product['brand'] }}"
-                                            data-price="{{ $product['price'] }}"
-                                            data-image="{{ $product['image'] }}">
+                                            data-id="{{ $product->id }}"
+                                            data-name="{{ $product->name }}"
+                                            data-brand="{{ $product->brand }}"
+                                            data-price="{{ $product->price }}"
+                                            data-image="{{ $product->main_image }}">
                                         <i class="fas fa-shopping-cart"></i> Add to Cart
                                     </button>
                                 </div>
@@ -343,8 +267,10 @@
                         </div>
                         @empty
                         <div class="col-12">
-                            <div class="alert alert-info text-center">
-                                No products found in this category.
+                            <div class="alert alert-info text-center py-5">
+                                <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                                <h5>No products found in this category</h5>
+                                <p class="text-muted">Check back later for new products</p>
                             </div>
                         </div>
                         @endforelse
@@ -353,23 +279,7 @@
                 
                 <!-- Pagination -->
                 <div class="pagination-section mt-5">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center" id="pagination">
-                            <li class="page-item disabled" id="prevPage">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#" data-page="2">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#" data-page="3">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#" data-page="4">4</a></li>
-                            <li class="page-item"><a class="page-link" href="#" data-page="5">5</a></li>
-                            <li class="page-item"><a class="page-link" href="#">...</a></li>
-                            <li class="page-item"><a class="page-link" href="#" data-page="10">10</a></li>
-                            <li class="page-item" id="nextPage">
-                                <a class="page-link" href="#">Next</a>
-                            </li>
-                        </ul>
-                    </nav>
+                    {{ $products->links() }}
                 </div>
             </div>
         </div>
@@ -398,9 +308,7 @@
 
 @push('styles')
 <style>
-/* ============================================
-   FILTER SIDEBAR STYLES
-   ============================================ */
+/* Filter Sidebar Styles */
 .filter-sidebar {
     background: #fff;
     border-radius: 8px;
@@ -410,7 +318,6 @@
     top: 20px;
     max-height: calc(100vh - 40px);
     overflow-y: auto;
-    scrollbar-width: thin;
 }
 
 .filter-sidebar::-webkit-scrollbar {
@@ -463,24 +370,6 @@
 .filter-options {
     max-height: 200px;
     overflow-y: auto;
-    scrollbar-width: thin;
-}
-
-.filter-options::-webkit-scrollbar {
-    width: 3px;
-}
-
-.filter-options::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.filter-options::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-.filter-options .form-check {
-    margin-bottom: 8px;
 }
 
 .filter-options .form-check-label {
@@ -489,48 +378,9 @@
     cursor: pointer;
 }
 
-.filter-options .form-check-input {
-    cursor: pointer;
-    margin-top: 0.15em;
-}
-
 .filter-options .form-check-input:checked {
     background-color: #febd69;
     border-color: #febd69;
-}
-
-.view-more-link {
-    font-size: 12px;
-    color: #febd69;
-    text-decoration: none;
-    display: inline-block;
-    margin-top: 5px;
-    cursor: pointer;
-}
-
-.view-more-link:hover {
-    color: #f3a847;
-    text-decoration: underline;
-}
-
-/* Price Range Inputs */
-.price-range .form-control-sm {
-    font-size: 12px;
-    padding: 0.4rem 0.5rem;
-}
-
-.price-range .btn-sm {
-    font-size: 12px;
-    padding: 0.4rem;
-    background-color: #febd69;
-    border-color: #febd69;
-    color: #131921;
-    font-weight: 600;
-}
-
-.price-range .btn-sm:hover {
-    background-color: #f3a847;
-    border-color: #f3a847;
 }
 
 /* Active Filters */
@@ -561,9 +411,7 @@
     color: #dc3545;
 }
 
-/* ============================================
-   CATEGORY HEADER STYLES
-   ============================================ */
+/* Category Header */
 .category-header {
     background: #fff;
     padding: 15px 20px;
@@ -577,27 +425,12 @@
     color: #333;
 }
 
-.sort-by .form-select-sm {
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    font-size: 13px;
-    padding: 0.4rem 2rem 0.4rem 0.8rem;
-    cursor: pointer;
-}
-
-.sort-by .form-select-sm:focus {
-    border-color: #febd69;
-    box-shadow: 0 0 0 0.2rem rgba(254,189,105,0.25);
-}
-
-/* ============================================
-   PRODUCT GRID STYLES
-   ============================================ */
+/* Products Grid */
 .products-grid {
     margin-top: 20px;
 }
 
-/* Product Card */
+/* Modern Product Card */
 .modern-product-card {
     background: white;
     border-radius: 12px;
@@ -702,11 +535,6 @@
     transform: scale(1.1);
 }
 
-.action-btn.active i {
-    color: #ff4d4d;
-    font-weight: 900;
-}
-
 /* Product Info */
 .modern-product-card .product-info {
     padding: 12px;
@@ -736,7 +564,6 @@
     overflow: hidden;
     height: 36px;
     text-decoration: none;
-    transition: color 0.2s ease;
 }
 
 .modern-product-card .product-title:hover {
@@ -808,28 +635,13 @@
     margin-top: auto;
 }
 
-.modern-product-card .add-to-cart-btn i {
-    font-size: 14px;
-}
-
 .modern-product-card .add-to-cart-btn:hover {
     background: #333;
     color: white;
     border-color: #333;
 }
 
-.modern-product-card .add-to-cart-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* ============================================
-   PAGINATION STYLES
-   ============================================ */
-.pagination-section {
-    margin-top: 40px;
-}
-
+/* Pagination */
 .pagination {
     gap: 5px;
 }
@@ -840,7 +652,6 @@
     padding: 0.5rem 0.8rem;
     font-size: 13px;
     border: 1px solid #ddd;
-    cursor: pointer;
 }
 
 .page-link:hover {
@@ -856,37 +667,7 @@
     font-weight: 600;
 }
 
-.page-item.disabled .page-link {
-    color: #999;
-    background-color: #f5f5f5;
-    border-color: #ddd;
-    cursor: not-allowed;
-}
-
-/* Quick View Modal */
-.modal-content {
-    border: none;
-    border-radius: 12px;
-}
-
-.modal-header {
-    border-bottom: 1px solid #f0f0f0;
-    padding: 15px 20px;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-/* Loading Spinner */
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
-
-/* ============================================
-   RESPONSIVE STYLES
-   ============================================ */
+/* Responsive */
 @media (max-width: 992px) {
     .filter-sidebar {
         position: static;
@@ -913,50 +694,6 @@
     .sort-by select {
         width: 100% !important;
     }
-    
-    .modern-product-card .product-title {
-        font-size: 13px;
-        height: 34px;
-    }
-    
-    .current-price {
-        font-size: 15px;
-    }
-    
-    .brand-name {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 576px) {
-    .filter-sidebar {
-        padding: 15px;
-    }
-    
-    .filter-title {
-        font-size: 13px;
-    }
-    
-    .filter-options .form-check-label {
-        font-size: 12px;
-    }
-    
-    .products-grid .row {
-        margin: 0 -5px;
-    }
-    
-    .products-grid [class*="col-"] {
-        padding: 0 5px;
-    }
-    
-    .modern-product-card .product-info {
-        padding: 8px;
-    }
-    
-    .modern-product-card .add-to-cart-btn {
-        padding: 6px;
-        font-size: 11px;
-    }
 }
 </style>
 @endpush
@@ -964,73 +701,59 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    'use strict';
-    
     // ============================================
     // FILTER FUNCTIONALITY
     // ============================================
     
     // Store active filters
     let activeFilters = {
-        category: [],
+        subcategory: [],
         price: null,
         brand: [],
         rating: [],
-        discount: [],
-        availability: []
+        discount: []
     };
     
     // Current sort option
     let currentSort = 'popularity';
-    
-    // Current page
     let currentPage = 1;
-    let totalPages = 10;
     
     // Update filter tags display
     function updateFilterTags() {
         let tagsHtml = '';
         let filterCount = 0;
         
-        // Category filters
-        activeFilters.category.forEach(value => {
-            let label = $(`input[data-filter="category"][data-value="${value}"]`).next('label').text().split(' ')[0];
-            tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="category" data-value="${value}"></i></span>`;
+        // Subcategory filters
+        activeFilters.subcategory.forEach(id => {
+            let label = $(`#subcat${id}`).next('label').text().split('(')[0].trim();
+            tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="subcategory" data-value="${id}"></i></span>`;
             filterCount++;
         });
         
         // Price filter
         if (activeFilters.price) {
-            let label = $(`input[data-filter="price"][data-value="${activeFilters.price}"]`).next('label').text().split(' ')[0];
+            let label = $(`input[data-filter="price"][data-value="${activeFilters.price}"]`).next('label').text();
             tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="price" data-value="${activeFilters.price}"></i></span>`;
             filterCount++;
         }
         
         // Brand filters
-        activeFilters.brand.forEach(value => {
-            let label = $(`input[data-filter="brand"][data-value="${value}"]`).next('label').text().split(' ')[0];
-            tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="brand" data-value="${value}"></i></span>`;
+        activeFilters.brand.forEach(brand => {
+            tagsHtml += `<span class="filter-tag">${brand} <i class="fas fa-times remove-filter" data-filter="brand" data-value="${brand}"></i></span>`;
             filterCount++;
         });
         
         // Rating filters
         activeFilters.rating.forEach(value => {
-            let label = $(`input[data-filter="rating"][data-value="${value}"]`).next('label').text().split(' ')[0];
+            let label = $(`input[data-filter="rating"][data-value="${value}"]`).next('label').text();
             tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="rating" data-value="${value}"></i></span>`;
             filterCount++;
         });
         
         // Discount filters
         activeFilters.discount.forEach(value => {
-            let label = $(`input[data-filter="discount"][data-value="${value}"]`).next('label').text().split(' ')[0];
+            let label = $(`input[data-filter="discount"][data-value="${value}"]`).next('label').text();
             tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="discount" data-value="${value}"></i></span>`;
-            filterCount++;
-        });
-        
-        // Availability filters
-        activeFilters.availability.forEach(value => {
-            let label = $(`input[data-filter="availability"][data-value="${value}"]`).next('label').text().split(' ')[0];
-            tagsHtml += `<span class="filter-tag">${label} <i class="fas fa-times remove-filter" data-filter="availability" data-value="${value}"></i></span>`;
             filterCount++;
         });
         
@@ -1042,36 +765,20 @@ $(document).ready(function() {
         }
     }
     
-    // Apply filters (simulated - in real app would make AJAX call)
+    // Apply filters
     function applyFilters() {
-        console.log('Applying filters:', activeFilters);
-        console.log('Sort by:', currentSort);
-        console.log('Page:', currentPage);
+        let params = new URLSearchParams();
         
-        // Show loading state
-        $('#productsContainer').html(`
-            <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Applying filters...</p>
-            </div>
-        `);
+        // Add filters to URL params
+        if (activeFilters.subcategory.length) params.append('subcategory', activeFilters.subcategory.join(','));
+        if (activeFilters.price) params.append('price', activeFilters.price);
+        if (activeFilters.brand.length) params.append('brand', activeFilters.brand.join(','));
+        if (activeFilters.rating.length) params.append('rating', activeFilters.rating.join(','));
+        if (activeFilters.discount.length) params.append('discount', activeFilters.discount.join(','));
+        params.append('sort', currentSort);
+        params.append('page', currentPage);
         
-        // Simulate AJAX call
-        setTimeout(function() {
-            // In real app, you would reload products here
-            // For demo, just show message
-            $('#productsContainer').html(`
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        Filters applied! In a real application, products would be filtered here.
-                    </div>
-                </div>
-            `);
-        }, 1000);
-        
-        updateFilterTags();
+        window.location.href = window.location.pathname + '?' + params.toString();
     }
     
     // Handle checkbox filters
@@ -1080,32 +787,33 @@ $(document).ready(function() {
         let filterValue = $(this).data('value');
         let isChecked = $(this).is(':checked');
         
-        if (isChecked) {
-            if (filterType === 'category') {
-                activeFilters.category.push(filterValue);
-            } else if (filterType === 'brand') {
-                activeFilters.brand.push(filterValue);
-            } else if (filterType === 'rating') {
-                activeFilters.rating.push(filterValue);
-            } else if (filterType === 'discount') {
-                activeFilters.discount.push(filterValue);
-            } else if (filterType === 'availability') {
-                activeFilters.availability.push(filterValue);
+        if (filterType === 'subcategory') {
+            if (isChecked) {
+                activeFilters.subcategory.push(filterValue);
+            } else {
+                activeFilters.subcategory = activeFilters.subcategory.filter(v => v != filterValue);
             }
-        } else {
-            if (filterType === 'category') {
-                activeFilters.category = activeFilters.category.filter(v => v !== filterValue);
-            } else if (filterType === 'brand') {
-                activeFilters.brand = activeFilters.brand.filter(v => v !== filterValue);
-            } else if (filterType === 'rating') {
-                activeFilters.rating = activeFilters.rating.filter(v => v !== filterValue);
-            } else if (filterType === 'discount') {
-                activeFilters.discount = activeFilters.discount.filter(v => v !== filterValue);
-            } else if (filterType === 'availability') {
-                activeFilters.availability = activeFilters.availability.filter(v => v !== filterValue);
+        } else if (filterType === 'brand') {
+            if (isChecked) {
+                activeFilters.brand.push(filterValue);
+            } else {
+                activeFilters.brand = activeFilters.brand.filter(v => v != filterValue);
+            }
+        } else if (filterType === 'rating') {
+            if (isChecked) {
+                activeFilters.rating.push(filterValue);
+            } else {
+                activeFilters.rating = activeFilters.rating.filter(v => v != filterValue);
+            }
+        } else if (filterType === 'discount') {
+            if (isChecked) {
+                activeFilters.discount.push(filterValue);
+            } else {
+                activeFilters.discount = activeFilters.discount.filter(v => v != filterValue);
             }
         }
         
+        updateFilterTags();
         applyFilters();
     });
     
@@ -1116,6 +824,7 @@ $(document).ready(function() {
         } else {
             activeFilters.price = null;
         }
+        updateFilterTags();
         applyFilters();
     });
     
@@ -1126,6 +835,7 @@ $(document).ready(function() {
         
         if (min || max) {
             activeFilters.price = `custom-${min}-${max}`;
+            updateFilterTags();
             applyFilters();
         }
     });
@@ -1142,19 +852,18 @@ $(document).ready(function() {
         } else {
             $(`input[data-filter="${filterType}"][data-value="${filterValue}"]`).prop('checked', false);
             
-            if (filterType === 'category') {
-                activeFilters.category = activeFilters.category.filter(v => v !== filterValue);
+            if (filterType === 'subcategory') {
+                activeFilters.subcategory = activeFilters.subcategory.filter(v => v != filterValue);
             } else if (filterType === 'brand') {
-                activeFilters.brand = activeFilters.brand.filter(v => v !== filterValue);
+                activeFilters.brand = activeFilters.brand.filter(v => v != filterValue);
             } else if (filterType === 'rating') {
-                activeFilters.rating = activeFilters.rating.filter(v => v !== filterValue);
+                activeFilters.rating = activeFilters.rating.filter(v => v != filterValue);
             } else if (filterType === 'discount') {
-                activeFilters.discount = activeFilters.discount.filter(v => v !== filterValue);
-            } else if (filterType === 'availability') {
-                activeFilters.availability = activeFilters.availability.filter(v => v !== filterValue);
+                activeFilters.discount = activeFilters.discount.filter(v => v != filterValue);
             }
         }
         
+        updateFilterTags();
         applyFilters();
     });
     
@@ -1165,96 +874,37 @@ $(document).ready(function() {
         $('#minPrice, #maxPrice').val('');
         
         activeFilters = {
-            category: [],
+            subcategory: [],
             price: null,
             brand: [],
             rating: [],
-            discount: [],
-            availability: []
+            discount: []
         };
         
+        updateFilterTags();
         applyFilters();
     });
     
-    // View more categories
-    $('#viewMoreCategories').on('click', function(e) {
-        e.preventDefault();
-        // In real app, load more categories
-        alert('Load more categories');
-    });
-    
-    // View more brands
-    $('#viewMoreBrands').on('click', function(e) {
-        e.preventDefault();
-        // In real app, load more brands
-        alert('Load more brands');
-    });
-    
-    // Mobile apply filters
-    $('#applyMobileFilters').on('click', function() {
-        applyFilters();
-    });
-    
-    // ============================================
-    // SORT FUNCTIONALITY
-    // ============================================
+    // Sort change
     $('#sortBy').on('change', function() {
         currentSort = $(this).val();
-        console.log('Sort changed to:', currentSort);
         applyFilters();
     });
     
-    // ============================================
-    // PAGINATION FUNCTIONALITY
-    // ============================================
-    $('.page-link[data-page]').on('click', function(e) {
+    // Pagination click handling
+    $(document).on('click', '.pagination a', function(e) {
         e.preventDefault();
-        let page = $(this).data('page');
-        
-        if (page && page !== currentPage) {
+        let page = $(this).attr('href').split('page=')[1];
+        if (page) {
             currentPage = page;
-            
-            // Update active state
-            $('.page-item').removeClass('active');
-            $(this).parent().addClass('active');
-            
-            // Update prev/next buttons
-            if (currentPage === 1) {
-                $('#prevPage').addClass('disabled');
-            } else {
-                $('#prevPage').removeClass('disabled');
-            }
-            
-            if (currentPage === totalPages) {
-                $('#nextPage').addClass('disabled');
-            } else {
-                $('#nextPage').removeClass('disabled');
-            }
-            
             applyFilters();
         }
     });
     
-    $('#prevPage a').on('click', function(e) {
-        e.preventDefault();
-        if (currentPage > 1) {
-            currentPage--;
-            $(`.page-link[data-page="${currentPage}"]`).trigger('click');
-        }
-    });
-    
-    $('#nextPage a').on('click', function(e) {
-        e.preventDefault();
-        if (currentPage < totalPages) {
-            currentPage++;
-            $(`.page-link[data-page="${currentPage}"]`).trigger('click');
-        }
-    });
-    
     // ============================================
-    // ADD TO CART FUNCTIONALITY - FIXED
+    // ADD TO CART FUNCTIONALITY
     // ============================================
-    $('.add-to-cart-btn').on('click', function(e) {
+    $(document).on('click', '.add-to-cart-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -1264,8 +914,6 @@ $(document).ready(function() {
         let brand = btn.data('brand');
         let price = btn.data('price');
         let image = btn.data('image');
-        
-        console.log('Adding to cart from category:', {id, name, brand, price, image});
         
         // Button animation
         let originalText = btn.html();
@@ -1285,215 +933,12 @@ $(document).ready(function() {
                 _token: '{{ csrf_token() }}'
             },
             success: function(response) {
-                console.log('Add to cart success:', response);
-                
                 if (response.success) {
                     // Update cart count
                     $('.cart-count').text(response.cart_count);
                     $('.mobile-cart-count').text(response.cart_count);
                     
-                    // Show success message
                     showNotification(response.message, 'success');
-                    
-                    // Redirect to cart page after short delay
-                    setTimeout(function() {
-                        window.location.href = response.redirect;
-                    }, 1000);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Add to cart error:', error);
-                console.error('Response:', xhr.responseText);
-                
-                btn.html(originalText);
-                btn.prop('disabled', false);
-                
-                let errorMessage = 'Error adding to cart';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                
-                showNotification(errorMessage, 'error');
-            }
-        });
-    });
-    
-    // ============================================
-    // WISHLIST FUNCTIONALITY
-    // ============================================
-    $('.wishlist-btn').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        let btn = $(this);
-        let icon = btn.find('i');
-        
-        if (icon.hasClass('far')) {
-            icon.removeClass('far').addClass('fas');
-            btn.addClass('active');
-            showNotification('Added to wishlist!', 'success');
-            
-            // Here you would typically save to database/localStorage
-            saveToWishlist(btn.data('id'));
-        } else {
-            icon.removeClass('fas').addClass('far');
-            btn.removeClass('active');
-            showNotification('Removed from wishlist', 'info');
-            
-            // Remove from wishlist
-            removeFromWishlist(btn.data('id'));
-        }
-    });
-    
-    // Wishlist functions (using localStorage)
-    function saveToWishlist(productId) {
-        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-        if (!wishlist.includes(productId)) {
-            wishlist.push(productId);
-            localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        }
-    }
-    
-    function removeFromWishlist(productId) {
-        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-        wishlist = wishlist.filter(id => id != productId);
-        localStorage.setItem('wishlist', JSON.stringify(wishlist));
-    }
-    
-    // Check wishlist status on load
-    function checkWishlistStatus() {
-        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-        $('.wishlist-btn').each(function() {
-            let id = $(this).data('id');
-            if (wishlist.includes(id)) {
-                $(this).find('i').removeClass('far').addClass('fas');
-                $(this).addClass('active');
-            }
-        });
-    }
-    checkWishlistStatus();
-    
-    // ============================================
-    // QUICK VIEW FUNCTIONALITY
-    // ============================================
-    $('.quick-view-btn').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        let productId = $(this).data('id');
-        let card = $(this).closest('.modern-product-card');
-        
-        // Get product details from the card
-        let product = {
-            id: productId,
-            name: card.find('.product-title').text().trim(),
-            brand: card.find('.brand-name').text().trim(),
-            price: card.find('.current-price').text().trim(),
-            originalPrice: card.find('.original-price').text().trim(),
-            discount: card.find('.discount').text().trim(),
-            image: card.find('.product-image img').attr('src'),
-            rating: getRatingFromStars(card)
-        };
-        
-        // Show modal with product details
-        showQuickView(product);
-    });
-    
-    function getRatingFromStars(card) {
-        let starCount = card.find('.product-rating .fas.fa-star').length;
-        let halfStar = card.find('.product-rating .fa-star-half-alt').length;
-        return starCount + (halfStar ? 0.5 : 0);
-    }
-    
-    function showQuickView(product) {
-        let content = `
-            <div class="row">
-                <div class="col-md-6">
-                    <img src="${product.image}" alt="${product.name}" class="img-fluid rounded">
-                </div>
-                <div class="col-md-6">
-                    <p class="brand-name mb-1">${product.brand}</p>
-                    <h5 class="mb-2">${product.name}</h5>
-                    <div class="product-rating mb-2">
-                        ${generateRatingStars(product.rating)}
-                        <span class="rating-count">(Based on reviews)</span>
-                    </div>
-                    <div class="price-section mb-3">
-                        <span class="current-price h4">${product.price}</span>
-                        <span class="original-price ms-2">${product.originalPrice}</span>
-                        <span class="discount ms-2">${product.discount}</span>
-                    </div>
-                    <p class="text-success"><i class="fas fa-check-circle"></i> In Stock</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-add-to-cart quick-add-to-cart" 
-                                data-id="${product.id}"
-                                data-name="${product.name}"
-                                data-brand="${product.brand}"
-                                data-price="${product.price.replace('₹', '').replace(',', '')}"
-                                data-image="${product.image}">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                        <button class="btn btn-outline-primary quick-buy-now">
-                            <i class="fas fa-bolt"></i> Buy Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        $('#quickViewContent').html(content);
-        $('#quickViewModal').modal('show');
-    }
-    
-    function generateRatingStars(rating) {
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            if (i <= Math.floor(rating)) {
-                stars += '<i class="fas fa-star text-warning"></i>';
-            } else if (i === Math.ceil(rating) && rating % 1 !== 0) {
-                stars += '<i class="fas fa-star-half-alt text-warning"></i>';
-            } else {
-                stars += '<i class="far fa-star text-warning"></i>';
-            }
-        }
-        return stars;
-    }
-    
-    // Quick view add to cart
-    $(document).on('click', '.quick-add-to-cart', function(e) {
-        e.preventDefault();
-        
-        let btn = $(this);
-        let id = btn.data('id');
-        let name = btn.data('name');
-        let brand = btn.data('brand');
-        let price = btn.data('price');
-        let image = btn.data('image');
-        
-        let originalText = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-        btn.prop('disabled', true);
-        
-        $.ajax({
-            url: '{{ route("cart.add") }}',
-            type: 'POST',
-            data: {
-                id: id,
-                name: name,
-                brand: brand,
-                price: price,
-                image: image,
-                quantity: 1,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('.cart-count').text(response.cart_count);
-                    $('.mobile-cart-count').text(response.cart_count);
-                    
-                    showNotification(response.message, 'success');
-                    
-                    $('#quickViewModal').modal('hide');
                     
                     setTimeout(function() {
                         window.location.href = response.redirect;
@@ -1508,47 +953,59 @@ $(document).ready(function() {
         });
     });
     
-    // Quick view buy now
-    $(document).on('click', '.quick-buy-now', function() {
-        $('#quickViewModal').modal('hide');
-        window.location.href = '{{ route("checkout") }}';
+    // ============================================
+    // WISHLIST
+    // ============================================
+    $(document).on('click', '.wishlist-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let btn = $(this);
+        let icon = btn.find('i');
+        
+        @auth
+            // Logged in user - save to database
+            let productId = btn.data('id');
+            
+            $.ajax({
+                url: '{{ route("wishlist.store") }}',
+                type: 'POST',
+                data: {
+                    product_id: productId,
+                    product_name: btn.closest('.modern-product-card').find('.product-title').text(),
+                    product_brand: btn.closest('.modern-product-card').find('.brand-name').text(),
+                    price: btn.closest('.modern-product-card').find('.current-price').text().replace('₹', '').replace(',', ''),
+                    product_image: btn.closest('.modern-product-card').find('.product-image img').attr('src'),
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        icon.removeClass('far').addClass('fas').css('color', '#ff4d4d');
+                        showNotification(response.message, 'success');
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        window.location.href = '{{ route("login") }}';
+                    } else {
+                        showNotification('Error adding to wishlist', 'error');
+                    }
+                }
+            });
+        @else
+            // Guest user - redirect to login
+            window.location.href = '{{ route("login") }}?redirect=' + encodeURIComponent(window.location.href);
+        @endauth
     });
     
-    // ============================================
-    // NOTIFICATION FUNCTION
-    // ============================================
-    function showNotification(message, type = 'info') {
-        // Check if toastr is available
+    // Notification function
+    function showNotification(message, type) {
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
         } else {
-            // Create temporary notification
-            let notification = $(`
-                <div class="temp-notification ${type}" style="position: fixed; top: 20px; right: 20px; background: ${type === 'success' ? '#4caf50' : '#f44336'}; color: white; padding: 12px 20px; border-radius: 4px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                    <span style="margin-left: 8px;">${message}</span>
-                </div>
-            `);
-            
-            $('body').append(notification);
-            
-            setTimeout(function() {
-                notification.fadeOut(300, function() {
-                    $(this).remove();
-                });
-            }, 3000);
+            alert(message);
         }
     }
-    
-    // ============================================
-    // PRODUCT COUNT UPDATE (Demo)
-    // ============================================
-    function updateProductCount(count) {
-        $('#productCount').text(count.toLocaleString());
-    }
-    
-    // Initialize with some demo functionality
-    console.log('Category page initialized with filters');
 });
 </script>
 @endpush
