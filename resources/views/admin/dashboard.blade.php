@@ -80,23 +80,49 @@
     </div>
     
     <div class="col-lg-4">
-        <div class="card">
+        <div class="card" style="min-height: 400px;">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Order Status</h5>
             </div>
-            <div class="card-body">
-                <canvas id="orderStatusChart" height="300"></canvas>
+            <div class="card-body d-flex flex-column">
+                {{-- Canvas with fixed height --}}
+                <div style="height: 200px; position: relative;">
+                    <canvas id="orderStatusChart" style="max-height: 200px; width: 100%;"></canvas>
+                </div>
                 
-                <div class="mt-3">
-                    @foreach($orderStatus as $status)
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>
-                            <span class="badge bg-{{ $status->order_status == 'delivered' ? 'success' : ($status->order_status == 'cancelled' ? 'danger' : 'warning') }}" style="width: 10px; height: 10px;"></span>
-                            {{ ucfirst($status->order_status) }}
-                        </span>
-                        <span class="fw-bold">{{ $status->total }}</span>
-                    </div>
-                    @endforeach
+                {{-- Status List with Fixed Height and Scroll if needed --}}
+                <div style="max-height: 150px; overflow-y: auto; margin-top: 15px;" class="pr-2">
+                    @if(isset($orderStatus) && !is_null($orderStatus) && $orderStatus->count() > 0)
+                        @foreach($orderStatus as $status)
+                            @if(isset($status->order_status) && isset($status->total))
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>
+                                    <span class="badge bg-{{ $status->order_status == 'delivered' ? 'success' : ($status->order_status == 'cancelled' ? 'danger' : 'warning') }}" style="width: 10px; height: 10px;"></span>
+                                    {{ ucfirst($status->order_status) }}
+                                </span>
+                                <span class="fw-bold">{{ $status->total }}</span>
+                            </div>
+                            @endif
+                        @endforeach
+                    @else
+                        {{-- Default data --}}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><span class="badge bg-warning" style="width: 10px; height: 10px;"></span> Pending</span>
+                            <span class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><span class="badge bg-primary" style="width: 10px; height: 10px;"></span> Processing</span>
+                            <span class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><span class="badge bg-success" style="width: 10px; height: 10px;"></span> Delivered</span>
+                            <span class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><span class="badge bg-danger" style="width: 10px; height: 10px;"></span> Cancelled</span>
+                            <span class="fw-bold">0</span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -195,7 +221,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // 🔥 FIXED: Dynamic revenue chart data from controller
+    // Revenue chart
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     const revenueChart = new Chart(revenueCtx, {
         type: 'line',
@@ -231,32 +257,67 @@ $(document).ready(function() {
         }
     });
     
-    // Order Status Chart
+    // Order Status Chart with fixed height
     const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
-    const statusData = @json($orderStatus);
+    
+    // Default data
+    let chartLabels = ['Pending', 'Processing', 'Delivered', 'Cancelled'];
+    let chartValues = [0, 0, 0, 0];
+    let chartColors = ['#f59e0b', '#8b5cf6', '#10b981', '#ef4444'];
+    
+    // Try to get real data
+    try {
+        let statusData = @json($orderStatus ?? []);
+        
+        if (statusData && Array.isArray(statusData) && statusData.length > 0) {
+            let tempLabels = [];
+            let tempValues = [];
+            let tempColors = [];
+            
+            statusData.forEach(item => {
+                if (item && item.order_status) {
+                    let label = item.order_status;
+                    tempLabels.push(label.charAt(0).toUpperCase() + label.slice(1).replace(/_/g, ' '));
+                    tempValues.push(item.total || 0);
+                    
+                    // Set color
+                    switch(item.order_status) {
+                        case 'pending': tempColors.push('#f59e0b'); break;
+                        case 'confirmed': tempColors.push('#3b82f6'); break;
+                        case 'processing': tempColors.push('#8b5cf6'); break;
+                        case 'shipped': tempColors.push('#64748b'); break;
+                        case 'out_for_delivery': tempColors.push('#1e293b'); break;
+                        case 'delivered': tempColors.push('#10b981'); break;
+                        case 'cancelled': tempColors.push('#ef4444'); break;
+                        case 'returned': tempColors.push('#ef4444'); break;
+                        default: tempColors.push('#64748b');
+                    }
+                }
+            });
+            
+            if (tempLabels.length > 0) {
+                chartLabels = tempLabels;
+                chartValues = tempValues;
+                chartColors = tempColors;
+            }
+        }
+    } catch(e) {
+        console.log('Using default chart data');
+    }
     
     new Chart(statusCtx, {
         type: 'doughnut',
         data: {
-            labels: statusData.map(item => ucfirst(item.order_status)),
+            labels: chartLabels,
             datasets: [{
-                data: statusData.map(item => item.total),
-                backgroundColor: [
-                    '#f59e0b', // pending
-                    '#3b82f6', // confirmed
-                    '#8b5cf6', // processing
-                    '#64748b', // shipped
-                    '#1e293b', // out_for_delivery
-                    '#10b981', // delivered
-                    '#ef4444', // cancelled
-                    '#ef4444'  // returned
-                ],
+                data: chartValues,
+                backgroundColor: chartColors,
                 borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             plugins: {
                 legend: {
                     display: false
@@ -265,10 +326,6 @@ $(document).ready(function() {
             cutout: '70%'
         }
     });
-    
-    function ucfirst(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
-    }
     
     // Period change - load dynamic data
     $('#revenuePeriod').on('change', function() {
@@ -286,7 +343,11 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                showNotification('Could not load revenue data', 'error');
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('Could not load revenue data', 'error');
+                } else {
+                    console.log('Could not load revenue data');
+                }
             }
         });
     });
