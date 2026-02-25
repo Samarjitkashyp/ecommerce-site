@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\CouponController;
 
 Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(function() {
     

@@ -12,6 +12,7 @@ use App\Models\Menu;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\ProductCategory;
+use App\Http\Controllers\Admin\CouponController;
 
 /**
  * BASE ADMIN CONTROLLER
@@ -100,6 +101,19 @@ abstract class AdminController extends Controller
                     ['name' => 'Add New', 'route' => 'admin.users.create']
                 ]
             ],
+            
+            // 🔥 FIXED: ADD COUPON MANAGEMENT SECTION
+            'coupons' => [
+                'name' => 'Coupon Management',
+                'icon' => 'fas fa-tags',
+                'route' => 'admin.coupons.index',
+                'permission' => 'coupons.view',
+                'submenu' => [
+                    ['name' => 'All Coupons', 'route' => 'admin.coupons.index'],
+                    ['name' => 'Add New', 'route' => 'admin.coupons.create']
+                ]
+            ],
+            
             'settings' => [
                 'name' => 'Settings',
                 'icon' => 'fas fa-cog',
@@ -151,11 +165,6 @@ abstract class AdminController extends Controller
             ];
         }
     }
-
-    /**
-     * 🔥 REMOVED: getCategoryCount() method
-     * Logic moved directly into getQuickStats()
-     */
 
     /**
      * HANDLE SUCCESS RESPONSE
