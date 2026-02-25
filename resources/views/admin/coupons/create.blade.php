@@ -1,0 +1,242 @@
+{{-- resources/views/admin/coupons/create.blade.php --}}
+@extends('layouts.admin')
+
+@section('title', 'Add New Coupon')
+@section('page-title', 'Add New Coupon')
+
+@section('content')
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Create New Coupon</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.coupons.store') }}" method="POST">
+                    @csrf
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="code" class="form-label fw-bold">
+                                Coupon Code <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control @error('code') is-invalid @enderror" 
+                                   id="code" 
+                                   name="code" 
+                                   value="{{ old('code') }}"
+                                   placeholder="e.g., SAVE10"
+                                   required>
+                            <small class="text-muted">Will be automatically converted to UPPERCASE</small>
+                            @error('code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label fw-bold">
+                                Coupon Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control @error('name') is-invalid @enderror" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name') }}"
+                                   placeholder="e.g., 10% Off"
+                                   required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold">
+                            Description
+                        </label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                                  id="description" 
+                                  name="description" 
+                                  rows="2">{{ old('description') }}</textarea>
+                        <small class="text-muted">Brief description of the coupon offer</small>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="type" class="form-label fw-bold">
+                                Discount Type <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select @error('type') is-invalid @enderror" 
+                                    id="type" 
+                                    name="type" 
+                                    required>
+                                <option value="percentage" {{ old('type') == 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
+                                <option value="fixed" {{ old('type') == 'fixed' ? 'selected' : '' }}>Fixed Amount (₹)</option>
+                            </select>
+                            @error('type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="value" class="form-label fw-bold">
+                                Discount Value <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control @error('value') is-invalid @enderror" 
+                                   id="value" 
+                                   name="value" 
+                                   value="{{ old('value') }}"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="10"
+                                   required>
+                            @error('value')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="min_order_amount" class="form-label fw-bold">
+                                Minimum Order Amount
+                            </label>
+                            <input type="number" 
+                                   class="form-control @error('min_order_amount') is-invalid @enderror" 
+                                   id="min_order_amount" 
+                                   name="min_order_amount" 
+                                   value="{{ old('min_order_amount') }}"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="1000">
+                            <small class="text-muted">Leave empty for no minimum</small>
+                            @error('min_order_amount')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="max_discount_amount" class="form-label fw-bold">
+                                Maximum Discount Amount
+                            </label>
+                            <input type="number" 
+                                   class="form-control @error('max_discount_amount') is-invalid @enderror" 
+                                   id="max_discount_amount" 
+                                   name="max_discount_amount" 
+                                   value="{{ old('max_discount_amount') }}"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="500">
+                            <small class="text-muted">For percentage coupons only</small>
+                            @error('max_discount_amount')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="usage_limit" class="form-label fw-bold">
+                                Total Usage Limit
+                            </label>
+                            <input type="number" 
+                                   class="form-control @error('usage_limit') is-invalid @enderror" 
+                                   id="usage_limit" 
+                                   name="usage_limit" 
+                                   value="{{ old('usage_limit') }}"
+                                   min="1"
+                                   placeholder="1000">
+                            <small class="text-muted">Leave empty for unlimited</small>
+                            @error('usage_limit')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="usage_per_user" class="form-label fw-bold">
+                                Usage Per User
+                            </label>
+                            <input type="number" 
+                                   class="form-control @error('usage_per_user') is-invalid @enderror" 
+                                   id="usage_per_user" 
+                                   name="usage_per_user" 
+                                   value="{{ old('usage_per_user', 1) }}"
+                                   min="1"
+                                   placeholder="1">
+                            <small class="text-muted">How many times a user can use this coupon</small>
+                            @error('usage_per_user')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="starts_at" class="form-label fw-bold">
+                                Start Date
+                            </label>
+                            <input type="datetime-local" 
+                                   class="form-control @error('starts_at') is-invalid @enderror" 
+                                   id="starts_at" 
+                                   name="starts_at" 
+                                   value="{{ old('starts_at') }}">
+                            <small class="text-muted">Leave empty to start immediately</small>
+                            @error('starts_at')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="expires_at" class="form-label fw-bold">
+                                Expiry Date
+                            </label>
+                            <input type="datetime-local" 
+                                   class="form-control @error('expires_at') is-invalid @enderror" 
+                                   id="expires_at" 
+                                   name="expires_at" 
+                                   value="{{ old('expires_at') }}">
+                            <small class="text-muted">Leave empty for no expiry</small>
+                            @error('expires_at')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="is_active" name="is_active" value="1" 
+                                   {{ old('is_active', true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold" for="is_active">
+                                Active (Available for use)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('admin.coupons.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Coupon
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Auto uppercase for code
+    $('#code').on('input', function() {
+        $(this).val($(this).val().toUpperCase());
+    });
+</script>
+@endpush

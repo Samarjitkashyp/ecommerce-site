@@ -145,4 +145,15 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'admin'])->group(func
         Route::get('/api', 'api')->name('api');
         Route::post('/api', 'updateApi')->name('api.update');
     });
+
+    // Coupon Management
+    Route::prefix('coupons')->name('coupons.')->controller(CouponController::class)->group(function() {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{coupon}/edit', 'edit')->name('edit');
+        Route::put('/{coupon}', 'update')->name('update');
+        Route::delete('/{coupon}', 'destroy')->name('destroy');
+        Route::post('/{coupon}/toggle-status', 'toggleStatus')->name('toggle-status');
+    });
 });

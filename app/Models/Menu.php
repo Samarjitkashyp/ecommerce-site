@@ -79,11 +79,13 @@ class Menu extends Model
     }
 
     /**
-     * RELATIONSHIP: CATEGORY
+     * 🔥 FIXED: RELATIONSHIP WITH PRODUCT CATEGORY
+     * Pehle: return $this->belongsTo(Category::class);
+     * Ab: Correct model name
      */
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
     /**
@@ -128,7 +130,7 @@ class Menu extends Model
         }
 
         if ($this->type === 'route' && $this->route) {
-            return route($this->route);
+            return route($this->route, [], false);
         }
 
         return $this->url ?? '#';

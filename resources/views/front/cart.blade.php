@@ -227,8 +227,31 @@
                                 @endif
                                 
                                 <!-- Coupon Section -->
+                                <!-- Coupon Section - Updated with dropdown -->
                                 <div class="coupon-section mb-3">
                                     <label class="form-label fw-bold">Apply Coupon</label>
+                                    
+                                    <!-- 🔥 NEW: Available Coupons Dropdown -->
+                                    @php
+                                        use App\Helpers\CouponHelper;
+                                        $availableCoupons = CouponHelper::getActiveCoupons();
+                                    @endphp
+                                    
+                                    @if($availableCoupons->count() > 0)
+                                    <div class="available-coupons mb-2">
+                                        <select class="form-select form-select-sm mb-2" id="availableCouponsSelect">
+                                            <option value="">-- Select a coupon --</option>
+                                            @foreach($availableCoupons as $coupon)
+                                                <option value="{{ $coupon->code }}" 
+                                                        data-code="{{ $coupon->code }}"
+                                                        data-message="{{ $coupon->description ?? $coupon->offer_text }}">
+                                                    {{ $coupon->code }} - {{ $coupon->offer_text }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @endif
+                                    
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="couponInput" placeholder="Enter coupon code" value="{{ $appliedCoupon['code'] ?? '' }}">
                                         <button class="btn btn-outline-primary" type="button" id="applyCouponBtn">
@@ -247,10 +270,19 @@
                                     </div>
                                     @endif
                                 </div>
-                                
-                                <!-- Available Offers -->
+
+                                <!-- Available Offers (Dynamic from Coupons) -->
                                 <div class="offers-section mb-3">
                                     <h6 class="mb-2"><i class="fas fa-tag text-primary"></i> Available Offers</h6>
+                                    @foreach($availableCoupons as $coupon)
+                                    <div class="offer-item small mb-2">
+                                        <i class="fas fa-circle text-primary" style="font-size: 8px;"></i>
+                                        <span class="ms-2">{{ $coupon->description ?? $coupon->offer_text }}</span>
+                                        <button class="btn btn-sm btn-link p-0 ms-2 apply-quick-coupon" data-code="{{ $coupon->code }}">
+                                            Apply
+                                        </button>
+                                    </div>
+                                    @endforeach
                                     <div class="offer-item small mb-2">
                                         <i class="fas fa-circle text-primary" style="font-size: 8px;"></i>
                                         <span class="ms-2">10% instant discount on HDFC Credit Card</span>
@@ -565,6 +597,25 @@
         max-width: 80px;
     }
 }
+
+/* Offer item styles */
+.offer-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.apply-quick-coupon {
+    color: #007185;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.apply-quick-coupon:hover {
+    color: #c45500;
+    text-decoration: underline;
+}
 </style>
 @endpush
 
@@ -734,7 +785,28 @@ $(document).ready(function() {
         });
     });
     
-    // Apply coupon
+    // ============================================
+    // 🔥 FIXED: COUPON DROPDOWN FUNCTIONALITY
+    // ============================================
+    $('#availableCouponsSelect').on('change', function() {
+        let selected = $(this).find('option:selected');
+        let couponCode = selected.val();
+        
+        if (couponCode) {
+            $('#couponInput').val(couponCode);
+            applyCoupon(couponCode);
+        }
+    });
+
+    // Quick apply coupon from offers list
+    $(document).on('click', '.apply-quick-coupon', function(e) {
+        e.preventDefault();
+        let couponCode = $(this).data('code');
+        $('#couponInput').val(couponCode);
+        applyCoupon(couponCode);
+    });
+
+    // Apply coupon button
     $('#applyCouponBtn').on('click', function() {
         let coupon = $('#couponInput').val();
         
@@ -743,17 +815,34 @@ $(document).ready(function() {
             return;
         }
         
+        applyCoupon(coupon);
+    });
+
+    // Apply coupon function
+    function applyCoupon(couponCode) {
         $.ajax({
             url: '{{ route("cart.coupon.apply") }}',
             type: 'POST',
             data: {
-                coupon: coupon,
+                coupon: couponCode,
                 _token: '{{ csrf_token() }}'
+            },
+            beforeSend: function() {
+                $('#couponMessage').html('<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Applying...</span>');
             },
             success: function(response) {
                 if (response.success) {
                     $('#couponMessage').html('<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>');
                     $('#discountDisplay').html('− ' + response.discount_formatted);
+                    
+                    // Update total
+                    let subtotal = parseFloat($('#subtotalDisplay').text().replace('₹', '').replace(',', ''));
+                    let deliveryCharge = {{ $deliveryCharge }};
+                    let tax = {{ $tax }};
+                    let newTotal = subtotal + deliveryCharge + tax - response.discount;
+                    $('#totalDisplay').html('₹' + newTotal.toLocaleString());
+                    
+                    showNotification(response.message, 'success');
                     
                     setTimeout(function() {
                         location.reload();
@@ -761,10 +850,15 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                $('#couponMessage').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + xhr.responseJSON.message + '</span>');
+                let message = 'Error applying coupon';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                $('#couponMessage').html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + message + '</span>');
+                showNotification(message, 'error');
             }
         });
-    });
+    }
     
     // Remove coupon
     $('#removeCouponBtn').on('click', function() {

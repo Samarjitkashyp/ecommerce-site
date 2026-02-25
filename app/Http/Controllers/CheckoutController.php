@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/CheckoutController.php
 
 namespace App\Http\Controllers;
 
@@ -8,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
 {
@@ -37,11 +39,13 @@ class CheckoutController extends Controller
                 $subtotal += $item['price'] * $item['quantity'];
             }
             
-            $deliveryCharge = $subtotal >= 499 ? 0 : 40;
-            $tax = round($subtotal * 0.05);
+            // 🔥 Get delivery charges from settings
+            $deliverySettings = $this->getDeliverySettings();
+            $deliveryCharge = $subtotal >= $deliverySettings['free_delivery_threshold'] ? 0 : $deliverySettings['standard_delivery_charge'];
+            $tax = round($subtotal * $deliverySettings['tax_rate'] / 100);
             $total = $subtotal + $deliveryCharge + $tax;
             
-            return view('front.checkout', compact('cart', 'addresses', 'subtotal', 'deliveryCharge', 'tax', 'total'));
+            return view('front.checkout', compact('cart', 'addresses', 'subtotal', 'deliveryCharge', 'tax', 'total', 'deliverySettings'));
             
         } catch (\Exception $e) {
             Log::error('Checkout page error: ' . $e->getMessage());
@@ -81,8 +85,9 @@ class CheckoutController extends Controller
                 $subtotal += $item['price'] * $item['quantity'];
             }
 
-            $deliveryCharge = $this->calculateDeliveryCharge($subtotal, $validated['delivery_option']);
-            $tax = round($subtotal * 0.05);
+            $deliverySettings = $this->getDeliverySettings();
+            $deliveryCharge = $this->calculateDeliveryCharge($subtotal, $validated['delivery_option'], $deliverySettings);
+            $tax = round($subtotal * $deliverySettings['tax_rate'] / 100);
             $total = $subtotal + $deliveryCharge + $tax;
 
             // Generate unique order number
@@ -153,20 +158,61 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Calculate delivery charge
+     * 🔥 FIXED: Get delivery settings from database or config
      */
-    private function calculateDeliveryCharge($subtotal, $deliveryOption)
+    private function getDeliverySettings()
+    {
+        // Default settings
+        $defaultSettings = [
+            'standard_delivery_charge' => 40,
+            'express_delivery_charge' => 99,
+            'sameday_delivery_charge' => 199,
+            'free_delivery_threshold' => 499,
+            'tax_rate' => 5, // 5% GST
+            'standard_delivery_days' => 5,
+            'express_delivery_days' => 2,
+            'sameday_delivery_cutoff' => '14:00'
+        ];
+        
+        // If settings table exists, get from database
+        if (Schema::hasTable('settings')) {
+            try {
+                $settings = DB::table('settings')->where('group', 'delivery')->pluck('value', 'key');
+                
+                if ($settings->isNotEmpty()) {
+                    foreach ($settings as $key => $value) {
+                        if (isset($defaultSettings[$key])) {
+                            if (is_numeric($value)) {
+                                $defaultSettings[$key] = (float)$value;
+                            } else {
+                                $defaultSettings[$key] = $value;
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Could not load delivery settings: ' . $e->getMessage());
+            }
+        }
+        
+        return $defaultSettings;
+    }
+
+    /**
+     * 🔥 FIXED: Calculate delivery charge based on settings
+     */
+    private function calculateDeliveryCharge($subtotal, $deliveryOption, $settings)
     {
         $charges = [
-            'standard' => 40,
-            'express' => 99,
-            'sameday' => 199
+            'standard' => $settings['standard_delivery_charge'],
+            'express' => $settings['express_delivery_charge'],
+            'sameday' => $settings['sameday_delivery_charge']
         ];
 
-        if ($deliveryOption == 'standard' && $subtotal >= 499) {
+        if ($deliveryOption == 'standard' && $subtotal >= $settings['free_delivery_threshold']) {
             return 0;
         }
 
-        return $charges[$deliveryOption] ?? 40;
+        return $charges[$deliveryOption] ?? $settings['standard_delivery_charge'];
     }
 }

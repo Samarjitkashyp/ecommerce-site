@@ -1,10 +1,13 @@
 <?php
+// app/Http/Controllers/CartController.php
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use App\Models\Coupon; // 🔥 Create this model
 
 class CartController extends Controller
 {
@@ -42,8 +45,12 @@ class CartController extends Controller
             } else {
                 $discount = $appliedCoupon['value'];
             }
+            
+            // 🔥 Cap discount at subtotal
+            $discount = min($discount, $subtotal);
         } else {
-            $discount = round($subtotal * 0.1);
+            // 🔥 REMOVED: Default discount - ab koi default nahi hoga
+            $discount = 0;
         }
         
         $total = $subtotal + $deliveryCharge + $tax - $discount;
@@ -64,18 +71,15 @@ class CartController extends Controller
     }
     
     /**
-     * Add item to cart - FIXED: Handles both AJAX and normal requests
+     * Add item to cart
      */
     public function add(Request $request)
     {
         try {
-            // Log request data for debugging
             Log::info('Add to cart request received:', $request->all());
             
-            // Check if it's AJAX request
             $isAjax = $request->ajax() || $request->wantsJson();
             
-            // Validate request
             $validated = $request->validate([
                 'id' => 'required',
                 'name' => 'required|string',
@@ -88,10 +92,8 @@ class CartController extends Controller
             $cart = Session::get('cart', []);
             $productId = (string)$request->id;
             
-            // Check if product already in cart
             if (isset($cart[$productId])) {
                 $cart[$productId]['quantity'] += (int)$request->quantity;
-                // Ensure quantity doesn't exceed max
                 if ($cart[$productId]['quantity'] > 10) {
                     $cart[$productId]['quantity'] = 10;
                 }
@@ -116,7 +118,6 @@ class CartController extends Controller
             Session::put('cart', $cart);
             Session::save();
             
-            // Calculate total cart count
             $cartCount = 0;
             foreach ($cart as $item) {
                 $cartCount += $item['quantity'];
@@ -124,7 +125,6 @@ class CartController extends Controller
             
             Log::info('Cart updated successfully. New count: ' . $cartCount);
             
-            // 🔥 FIX: Return appropriate response based on request type
             if ($isAjax) {
                 return response()->json([
                     'success' => true,
@@ -135,7 +135,6 @@ class CartController extends Controller
                 ]);
             }
             
-            // Regular form submission - redirect to cart
             return redirect()->route('cart.index')->with('success', 'Item added to cart successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -200,8 +199,11 @@ class CartController extends Controller
                     } else {
                         $discount = $appliedCoupon['value'];
                     }
+                    
+                    // 🔥 Cap discount at subtotal
+                    $discount = min($discount, $subtotal);
                 } else {
-                    $discount = round($subtotal * 0.1);
+                    $discount = 0;
                 }
                 
                 $total = $subtotal + $deliveryCharge + $tax - $discount;
@@ -282,8 +284,11 @@ class CartController extends Controller
                     } else {
                         $discount = $appliedCoupon['value'];
                     }
+                    
+                    // 🔥 Cap discount at subtotal
+                    $discount = min($discount, $subtotal);
                 } else {
-                    $discount = round($subtotal * 0.1);
+                    $discount = 0;
                 }
                 
                 $total = $subtotal + $deliveryCharge + $tax - $discount;
@@ -428,7 +433,7 @@ class CartController extends Controller
     }
     
     /**
-     * Apply coupon
+     * 🔥 FIXED: Apply coupon from database with fallback
      */
     public function applyCoupon(Request $request)
     {
@@ -437,8 +442,59 @@ class CartController extends Controller
                 'coupon' => 'required|string'
             ]);
             
-            $coupon = strtoupper($request->coupon);
+            $couponCode = strtoupper($request->coupon);
             
+            // 🔥 Try database coupons first
+            if (Schema::hasTable('coupons')) {
+                $coupon = Coupon::where('code', $couponCode)
+                    ->where('is_active', true)
+                    ->where(function($query) {
+                        $query->whereNull('expires_at')
+                              ->orWhere('expires_at', '>', now());
+                    })
+                    ->first();
+                
+                if ($coupon) {
+                    // Check minimum order amount
+                    $cart = Session::get('cart', []);
+                    $subtotal = 0;
+                    foreach ($cart as $item) {
+                        $subtotal += $item['price'] * $item['quantity'];
+                    }
+                    
+                    if ($coupon->min_order_amount && $subtotal < $coupon->min_order_amount) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This coupon requires minimum order of ₹' . $coupon->min_order_amount
+                        ], 422);
+                    }
+                    
+                    Session::put('applied_coupon', [
+                        'code' => $coupon->code,
+                        'value' => $coupon->value,
+                        'type' => $coupon->type,
+                        'message' => $coupon->description ?? ($coupon->type == 'percentage' ? $coupon->value . '% off' : '₹' . $coupon->value . ' off')
+                    ]);
+                    Session::save();
+                    
+                    if ($coupon->type == 'percentage') {
+                        $discount = round($subtotal * $coupon->value / 100);
+                    } else {
+                        $discount = $coupon->value;
+                    }
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Coupon applied successfully!',
+                        'discount' => $discount,
+                        'discount_formatted' => '₹' . number_format($discount),
+                        'coupon_code' => $coupon->code,
+                        'coupon_message' => $coupon->description ?? ''
+                    ]);
+                }
+            }
+            
+            // 🔥 Fallback to default coupons if no database table
             $validCoupons = [
                 'SAVE10' => ['value' => 10, 'type' => 'percentage', 'message' => '10% off'],
                 'SAVE20' => ['value' => 20, 'type' => 'percentage', 'message' => '20% off'],
@@ -448,11 +504,11 @@ class CartController extends Controller
                 'FREEDEL' => ['value' => 40, 'type' => 'fixed', 'message' => 'Free Delivery'],
             ];
             
-            if (isset($validCoupons[$coupon])) {
-                $couponData = $validCoupons[$coupon];
+            if (isset($validCoupons[$couponCode])) {
+                $couponData = $validCoupons[$couponCode];
                 
                 Session::put('applied_coupon', [
-                    'code' => $coupon,
+                    'code' => $couponCode,
                     'value' => $couponData['value'],
                     'type' => $couponData['type'],
                     'message' => $couponData['message']
@@ -476,7 +532,7 @@ class CartController extends Controller
                     'message' => 'Coupon applied successfully!',
                     'discount' => $discount,
                     'discount_formatted' => '₹' . number_format($discount),
-                    'coupon_code' => $coupon,
+                    'coupon_code' => $couponCode,
                     'coupon_message' => $couponData['message']
                 ]);
             }
@@ -512,7 +568,7 @@ class CartController extends Controller
             
             $deliveryCharge = $subtotal < 499 ? 40 : 0;
             $tax = round($subtotal * 0.05);
-            $discount = round($subtotal * 0.1);
+            $discount = 0; // 🔥 Removed default discount
             $total = $subtotal + $deliveryCharge + $tax - $discount;
             
             return response()->json([

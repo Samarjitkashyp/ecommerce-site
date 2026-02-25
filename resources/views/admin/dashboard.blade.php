@@ -15,7 +15,7 @@
             <div class="stat-label">Total Orders</div>
             <div class="stat-value">{{ number_format($stats['total_orders']) }}</div>
             <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 12% from last month
+                <i class="fas fa-arrow-up"></i> {{ $stats['order_growth'] ?? 12 }}% from last month
             </div>
         </div>
     </div>
@@ -28,7 +28,7 @@
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value">₹{{ number_format($stats['total_revenue']) }}</div>
             <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 8% from last month
+                <i class="fas fa-arrow-up"></i> {{ $stats['revenue_growth'] ?? 8 }}% from last month
             </div>
         </div>
     </div>
@@ -41,7 +41,7 @@
             <div class="stat-label">Total Users</div>
             <div class="stat-value">{{ number_format($stats['total_users']) }}</div>
             <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 15% from last month
+                <i class="fas fa-arrow-up"></i> {{ $stats['user_growth'] ?? 15 }}% from last month
             </div>
         </div>
     </div>
@@ -54,7 +54,7 @@
             <div class="stat-label">Categories</div>
             <div class="stat-value">{{ number_format($stats['total_categories']) }}</div>
             <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 3 new this week
+                <i class="fas fa-arrow-up"></i> {{ $stats['new_categories'] ?? 3 }} new this week
             </div>
         </div>
     </div>
@@ -195,15 +195,15 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Revenue Chart
+    // 🔥 FIXED: Dynamic revenue chart data from controller
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     const revenueChart = new Chart(revenueCtx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: {!! json_encode($chartLabels ?? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) !!},
             datasets: [{
                 label: 'Revenue (₹)',
-                data: [45000, 52000, 48000, 58000, 62000, 59000, 68000, 72000, 69000, 75000, 82000, 89000],
+                data: {!! json_encode($chartData ?? [0,0,0,0,0,0,0,0,0,0,0,0]) !!},
                 borderColor: '#4361ee',
                 backgroundColor: 'rgba(67, 97, 238, 0.1)',
                 tension: 0.4,
@@ -270,7 +270,7 @@ $(document).ready(function() {
         return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
     }
     
-    // Period change
+    // Period change - load dynamic data
     $('#revenuePeriod').on('change', function() {
         let period = $(this).val();
         
@@ -284,6 +284,9 @@ $(document).ready(function() {
                     revenueChart.data.datasets[0].data = response.data.revenue;
                     revenueChart.update();
                 }
+            },
+            error: function() {
+                showNotification('Could not load revenue data', 'error');
             }
         });
     });

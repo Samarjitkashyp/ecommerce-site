@@ -7,7 +7,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Menu;
+use App\Models\Order;
+use App\Models\User;
+use App\Models\ProductCategory;
 
 /**
  * BASE ADMIN CONTROLLER
@@ -112,20 +116,29 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * GET QUICK STATS FOR DASHBOARD
+     * 🔥 FIXED: GET QUICK STATS FOR DASHBOARD
+     * Removed MySQL-specific SHOW TABLES query
+     * Using Schema::hasTable() which works on all databases
      */
     protected function getQuickStats()
     {
         try {
-            $categoryCount = $this->getCategoryCount();
+            // Check if tables exist using Schema facade (works on all DBs)
+            $categoryCount = 0;
+            
+            if (Schema::hasTable('product_categories')) {
+                $categoryCount = ProductCategory::count();
+            } elseif (Schema::hasTable('categories')) {
+                $categoryCount = DB::table('categories')->count();
+            }
             
             return [
-                'total_orders' => \App\Models\Order::count(),
-                'pending_orders' => \App\Models\Order::where('order_status', 'pending')->count(),
-                'total_users' => \App\Models\User::count(),
-                'total_products' => 0,
+                'total_orders' => Schema::hasTable('orders') ? Order::count() : 0,
+                'pending_orders' => Schema::hasTable('orders') ? Order::where('order_status', 'pending')->count() : 0,
+                'total_users' => Schema::hasTable('users') ? User::count() : 0,
+                'total_products' => Schema::hasTable('products') ? DB::table('products')->count() : 0,
                 'total_categories' => $categoryCount,
-                'total_menus' => Menu::count()
+                'total_menus' => Schema::hasTable('menus') ? Menu::count() : 0
             ];
         } catch (\Exception $e) {
             return [
@@ -140,28 +153,9 @@ abstract class AdminController extends Controller
     }
 
     /**
-     * Safely get category count
+     * 🔥 REMOVED: getCategoryCount() method
+     * Logic moved directly into getQuickStats()
      */
-    private function getCategoryCount()
-    {
-        $tables = DB::select('SHOW TABLES');
-        $databaseName = env('DB_DATABASE');
-        $tableKey = "Tables_in_{$databaseName}";
-        
-        $tableNames = array_map(function($table) use ($tableKey) {
-            return $table->$tableKey;
-        }, $tables);
-
-        if (in_array('product_categories', $tableNames)) {
-            return DB::table('product_categories')->count();
-        }
-        
-        if (in_array('categories', $tableNames)) {
-            return DB::table('categories')->count();
-        }
-        
-        return 0;
-    }
 
     /**
      * HANDLE SUCCESS RESPONSE

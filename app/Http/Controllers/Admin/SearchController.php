@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\Category;
+use App\Models\ProductCategory;  // 🔥 FIXED: Category -> ProductCategory
 
 class SearchController extends AdminController
 {
@@ -39,7 +39,8 @@ class SearchController extends AdminController
                         ->limit(5)
                         ->get(),
                         
-            'categories' => Category::where('name', 'LIKE', "%{$query}%")
+            // 🔥 FIXED: Category -> ProductCategory
+            'categories' => ProductCategory::where('name', 'LIKE', "%{$query}%")
                             ->orWhere('description', 'LIKE', "%{$query}%")
                             ->limit(5)
                             ->get(),

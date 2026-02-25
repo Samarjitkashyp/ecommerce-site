@@ -123,7 +123,8 @@ class MenuController extends AdminController
             ->where('id', '!=', $menu->id)
             ->get();
         
-        $categories = Category::active()->get();
+        // 🔥 FIXED: Category -> ProductCategory
+        $categories = ProductCategory::where('is_active', true)->get();
         $types = Menu::TYPES;
         $locations = Menu::LOCATIONS;
 

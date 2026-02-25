@@ -180,10 +180,24 @@
                         </div>
                     </div>
                     
-                    <!-- Offers Section - 🔥 Can be managed from admin later -->
+                    <!-- Offers Section - 🔥 DYNAMIC FROM COUPONS DATABASE -->
                     <div class="offers-section mb-3">
                         <h5 class="section-subtitle"><i class="fas fa-tag me-2"></i>Available Offers</h5>
                         <div class="offer-list">
+                            @php
+                                // ✅ FIXED: Directly use fully qualified class name
+                                $availableCoupons = \App\Helpers\CouponHelper::getActiveCoupons();
+                            @endphp
+                            
+                            @forelse($availableCoupons as $coupon)
+                            <div class="offer-item">
+                                <span class="offer-badge">COUPON</span>
+                                <span class="offer-text">
+                                    {{ $coupon->description ?? \App\Helpers\CouponHelper::formatCouponText($coupon) }}
+                                </span>
+                                <button class="btn-apply-coupon-small" data-coupon="{{ $coupon->code }}">Apply</button>
+                            </div>
+                            @empty
                             <div class="offer-item">
                                 <span class="offer-badge">BANK OFFER</span>
                                 <span class="offer-text">10% instant discount on HDFC Bank Credit Card</span>
@@ -196,7 +210,8 @@
                                 <span class="offer-badge">SPECIAL PRICE</span>
                                 <span class="offer-text">Get extra 5% off (price inclusive of special price)</span>
                             </div>
-                            <a href="#" class="view-more-offers">View 3 more offers</a>
+                            @endforelse
+                            <a href="#" class="view-more-offers">View more offers</a>
                         </div>
                     </div>
                     
@@ -372,9 +387,22 @@
                  ============================================ -->
             <div class="col-lg-3">
                 <div class="delivery-sidebar">
-                    <!-- Coupons -->
+                    <!-- Coupons - 🔥 DYNAMIC FROM DATABASE -->
                     <div class="coupons-section mb-3">
                         <h5 class="sidebar-title"><i class="fas fa-tags me-2"></i>Available Coupons</h5>
+                        
+                        @php
+                            // ✅ FIXED: Directly use fully qualified class name
+                            $availableCoupons = \App\Helpers\CouponHelper::getActiveCoupons();
+                        @endphp
+                        
+                        @forelse($availableCoupons as $coupon)
+                        <div class="coupon-card">
+                            <div class="coupon-code">{{ $coupon->code }}</div>
+                            <div class="coupon-desc">{{ $coupon->description ?? \App\Helpers\CouponHelper::formatCouponText($coupon) }}</div>
+                            <button class="btn-apply-coupon" data-coupon="{{ $coupon->code }}">Apply</button>
+                        </div>
+                        @empty
                         <div class="coupon-card">
                             <div class="coupon-code">FASHION10</div>
                             <div class="coupon-desc">10% off on Fashion items</div>
@@ -385,6 +413,8 @@
                             <div class="coupon-desc">Flat ₹50 off for new users</div>
                             <button class="btn-apply-coupon" data-coupon="NEWUSER50">Apply</button>
                         </div>
+                        @endforelse
+                        
                         <a href="#" class="view-all-coupons">View All Coupons</a>
                     </div>
                     
@@ -934,6 +964,7 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px dashed #ddd;
+    position: relative;
 }
 
 .offer-badge {
@@ -949,6 +980,22 @@
 .offer-text {
     font-size: 13px;
     color: #0f1111;
+}
+
+.btn-apply-coupon-small {
+    background: #febd69;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-apply-coupon-small:hover {
+    background: #f3a847;
 }
 
 .view-more-offers {
@@ -1353,7 +1400,6 @@
 </style>
 @endpush
 
-{{-- 🔥 UPDATED SCRIPTS - Fixed for dynamic data --}}
 @push('scripts')
 <script>
 $(document).ready(function() {
@@ -1621,11 +1667,43 @@ $(document).ready(function() {
     });
     
     // ============================================
-    // APPLY COUPON
+    // 🔥 FIXED: APPLY COUPON FUNCTIONALITY
     // ============================================
-    $('.btn-apply-coupon').on('click', function() {
-        let couponCode = $(this).data('coupon') || $(this).siblings('.coupon-code').text();
-        showNotification(`Coupon ${couponCode} applied!`, 'success');
+    $('.btn-apply-coupon, .btn-apply-coupon-small').on('click', function() {
+        let couponCode = $(this).data('coupon');
+        if (!couponCode) {
+            couponCode = $(this).siblings('.coupon-code').text();
+        }
+        
+        // Store coupon in session via AJAX
+        $.ajax({
+            url: '{{ route("cart.coupon.apply") }}',
+            type: 'POST',
+            data: {
+                coupon: couponCode,
+                _token: '{{ csrf_token() }}'
+            },
+            beforeSend: function() {
+                showNotification('Applying coupon...', 'info');
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotification(response.message, 'success');
+                    
+                    // Redirect to cart page to see applied coupon
+                    setTimeout(function() {
+                        window.location.href = '{{ route("cart.index") }}';
+                    }, 1500);
+                }
+            },
+            error: function(xhr) {
+                let message = 'Error applying coupon';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                showNotification(message, 'error');
+            }
+        });
     });
     
     // ============================================

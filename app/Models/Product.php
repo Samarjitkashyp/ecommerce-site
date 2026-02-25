@@ -106,20 +106,30 @@ class Product extends Model
     }
 
     /**
-     * 🔥 FIXED: Get main image with proper path
+     * 🔥 FIXED: Get main image with proper path and null handling
      * Returns the main image URL or a fallback
      */
     public function getMainImageAttribute()
     {
         $images = $this->images;
         
+        // Agar null hai to empty array
+        if (is_null($images)) {
+            return 'https://picsum.photos/500/500?random=' . $this->id;
+        }
+        
         // Agar images string hai to decode karo
         if (is_string($images)) {
             $images = json_decode($images, true) ?? [];
         }
         
+        // Ensure it's an array
+        if (!is_array($images)) {
+            $images = [];
+        }
+        
         // Agar array hai to check karo
-        if (is_array($images)) {
+        if (count($images) > 0) {
             // Agar 'main' key exist karti hai
             if (isset($images['main']) && !empty($images['main'])) {
                 // Check if it's already a full URL
@@ -130,14 +140,12 @@ class Product extends Model
             }
             
             // Agar numeric array hai (old format)
-            if (count($images) > 0) {
-                $firstImage = reset($images);
-                if (is_string($firstImage) && !empty($firstImage)) {
-                    if (strpos($firstImage, 'http') === 0) {
-                        return $firstImage;
-                    }
-                    return asset('storage/' . $firstImage);
+            $firstImage = reset($images);
+            if (is_string($firstImage) && !empty($firstImage)) {
+                if (strpos($firstImage, 'http') === 0) {
+                    return $firstImage;
                 }
+                return asset('storage/' . $firstImage);
             }
         }
         
@@ -146,7 +154,7 @@ class Product extends Model
     }
 
     /**
-     * 🔥 FIXED: Get thumbnail images with proper paths
+     * 🔥 FIXED: Get thumbnail images with proper paths and null handling
      * Sab images return karta hai thumbnails ke liye
      */
     public function getThumbnailImagesAttribute()
@@ -154,38 +162,45 @@ class Product extends Model
         $images = $this->images;
         $thumbnails = [];
         
+        // Agar null hai to empty array return
+        if (is_null($images)) {
+            return [];
+        }
+        
         // Agar images string hai to decode karo
         if (is_string($images)) {
             $images = json_decode($images, true) ?? [];
         }
         
-        // Agar array hai
-        if (is_array($images)) {
-            // Agar 'thumbnails' key exist karti hai
-            if (isset($images['thumbnails']) && is_array($images['thumbnails'])) {
-                foreach ($images['thumbnails'] as $thumb) {
-                    if (!empty($thumb)) {
-                        if (strpos($thumb, 'http') === 0) {
-                            $thumbnails[] = $thumb;
-                        } else {
-                            $thumbnails[] = asset('storage/' . $thumb);
-                        }
+        // Ensure it's an array
+        if (!is_array($images)) {
+            return [];
+        }
+        
+        // Agar 'thumbnails' key exist karti hai
+        if (isset($images['thumbnails']) && is_array($images['thumbnails'])) {
+            foreach ($images['thumbnails'] as $thumb) {
+                if (!empty($thumb)) {
+                    if (strpos($thumb, 'http') === 0) {
+                        $thumbnails[] = $thumb;
+                    } else {
+                        $thumbnails[] = asset('storage/' . $thumb);
                     }
                 }
-                return $thumbnails;
             }
+            return $thumbnails;
+        }
+        
+        // Agar numeric array hai (old format)
+        foreach ($images as $key => $image) {
+            // Skip agar 'main' key hai
+            if ($key === 'main') continue;
             
-            // Agar numeric array hai (old format)
-            foreach ($images as $key => $image) {
-                // Skip agar 'main' key hai
-                if ($key === 'main') continue;
-                
-                if (is_string($image) && !empty($image)) {
-                    if (strpos($image, 'http') === 0) {
-                        $thumbnails[] = $image;
-                    } else {
-                        $thumbnails[] = asset('storage/' . $image);
-                    }
+            if (is_string($image) && !empty($image)) {
+                if (strpos($image, 'http') === 0) {
+                    $thumbnails[] = $image;
+                } else {
+                    $thumbnails[] = asset('storage/' . $image);
                 }
             }
         }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductCategory;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -22,8 +23,8 @@ class CategoryController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
         
-        // Get products in this category (including subcategories)
-        $categoryIds = $this->getCategoryAndChildrenIds($categoryInfo->id);
+        // 🔥 OPTIMIZED: Get category and all children IDs using caching
+        $categoryIds = $this->getCategoryAndChildrenIdsOptimized($categoryInfo->id);
         
         $products = Product::with('category')
             ->whereIn('category_id', $categoryIds)
@@ -32,7 +33,7 @@ class CategoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(24);
         
-        // 🔥 FIXED: Get ALL categories for filter sidebar (top level categories)
+        // Get ALL categories for filter sidebar (top level categories)
         $allCategories = ProductCategory::whereNull('parent_id')
             ->where('is_active', true)
             ->withCount('products')
@@ -66,23 +67,43 @@ class CategoryController extends Controller
     }
     
     /**
-     * Get category ID and all children IDs
+     * 🔥 OPTIMIZED: Get category ID and all children IDs without recursion
+     * Using iteration instead of recursion for better performance
+     */
+    private function getCategoryAndChildrenIdsOptimized($categoryId)
+    {
+        // Try to get from cache first
+        $cacheKey = 'category_children_' . $categoryId;
+        
+        return Cache::remember($cacheKey, 3600, function() use ($categoryId) {
+            $ids = [$categoryId];
+            $queue = [$categoryId];
+            
+            while (!empty($queue)) {
+                $currentId = array_shift($queue);
+                
+                $children = ProductCategory::where('parent_id', $currentId)
+                    ->where('is_active', true)
+                    ->pluck('id')
+                    ->toArray();
+                
+                foreach ($children as $childId) {
+                    if (!in_array($childId, $ids)) {
+                        $ids[] = $childId;
+                        $queue[] = $childId;
+                    }
+                }
+            }
+            
+            return $ids;
+        });
+    }
+    
+    /**
+     * Keep old method for backward compatibility
      */
     private function getCategoryAndChildrenIds($categoryId)
     {
-        $ids = [$categoryId];
-        
-        $children = ProductCategory::where('parent_id', $categoryId)
-            ->where('is_active', true)
-            ->get();
-        
-        foreach ($children as $child) {
-            $ids[] = $child->id;
-            // Recursive for deeper levels
-            $grandChildren = $this->getCategoryAndChildrenIds($child->id);
-            $ids = array_merge($ids, $grandChildren);
-        }
-        
-        return array_unique($ids);
+        return $this->getCategoryAndChildrenIdsOptimized($categoryId);
     }
 }

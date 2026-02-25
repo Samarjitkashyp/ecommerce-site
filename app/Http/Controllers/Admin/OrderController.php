@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderStatusUpdated; // Create this mail class
 
 class OrderController extends AdminController
 {
@@ -84,7 +86,7 @@ class OrderController extends AdminController
     }
 
     /**
-     * Update order status
+     * 🔥 FIXED: Update order status with email notification
      */
     public function updateStatus(Request $request, Order $order)
     {
@@ -93,6 +95,7 @@ class OrderController extends AdminController
                 'order_status' => 'required|in:pending,processing,completed,cancelled'
             ]);
 
+            $oldStatus = $order->order_status;
             $order->order_status = $request->order_status;
             
             if ($request->order_status == 'completed') {
@@ -101,13 +104,32 @@ class OrderController extends AdminController
             
             $order->save();
 
-            Log::info('Order status updated', ['order_id' => $order->id, 'status' => $order->order_status]);
+            Log::info('Order status updated', [
+                'order_id' => $order->id, 
+                'old_status' => $oldStatus,
+                'new_status' => $order->order_status
+            ]);
+
+            // 🔥 Send email notification to customer
+            try {
+                if (class_exists('App\Mail\OrderStatusUpdated')) {
+                    Mail::to($order->user->email)->send(new OrderStatusUpdated($order, $oldStatus));
+                }
+            } catch (\Exception $e) {
+                Log::warning('Order status email failed: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Order status updated successfully!'
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Order status update error: ' . $e->getMessage());
             
@@ -126,6 +148,15 @@ class OrderController extends AdminController
         try {
             $order->order_status = 'cancelled';
             $order->save();
+
+            // 🔥 Send cancellation email
+            try {
+                if (class_exists('App\Mail\OrderCancelled')) {
+                    Mail::to($order->user->email)->send(new OrderCancelled($order));
+                }
+            } catch (\Exception $e) {
+                Log::warning('Order cancellation email failed: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
