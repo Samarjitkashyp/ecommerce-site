@@ -1,6 +1,6 @@
 /**
  * Custom JavaScript for Amazon Style Website
- * Version: 2.0
+ * Version: 2.0 - FINAL FIXED
  */
 
 $(document).ready(function() {
@@ -15,88 +15,40 @@ $(document).ready(function() {
     });
     
     // ============================================
-    // CART COUNTER FUNCTIONALITY
+    // CART COUNTER FUNCTIONALITY - FIXED
     // ============================================
-    let cartCount = parseInt(localStorage.getItem('cartCount')) || 0;
-    updateCartCount(cartCount);
-    
     function updateCartCount(count) {
         $('.cart-count').text(count);
         $('.mobile-cart-count').text(count);
-        localStorage.setItem('cartCount', count);
     }
     
-    // ============================================
-    // ADD TO CART FUNCTIONALITY
-    // ============================================
-    $('.add-to-cart-btn').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        let button = $(this);
-        let productCard = button.closest('.modern-product-card');
-        let productId = button.data('id');
-        let productTitle = button.data('name') || productCard.find('.product-title').text();
-        let brandName = button.data('brand') || productCard.find('.brand-name').text();
-        let productPrice = button.data('price') || productCard.find('.current-price').text().replace('₹', '');
-        
-        // Button loading animation
-        let originalText = button.html();
-        button.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-        button.prop('disabled', true);
-        
-        // Simulate API call
-        setTimeout(function() {
-            // Update cart count
-            cartCount++;
-            updateCartCount(cartCount);
-            
-            // Animate cart icon
-            $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
-            setTimeout(function() {
-                $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
-            }, 1000);
-            
-            // Reset button
-            button.html(originalText);
-            button.prop('disabled', false);
-            
-            // Show success notification
-            showNotification(`${brandName} ${productTitle} added to cart!`, 'success');
-            
-            // Save to localStorage (cart items)
-            saveToCart(productId, productTitle, brandName, productPrice);
-            
-            console.log('Product added:', { id: productId, name: productTitle, brand: brandName, price: productPrice });
-        }, 600);
+    // Get initial cart count from server
+    $.ajax({
+        url: '/cart/count',
+        type: 'GET',
+        success: function(response) {
+            updateCartCount(response.count);
+        },
+        error: function() {
+            console.log('Could not fetch cart count');
+        }
     });
     
-    // Save cart items to localStorage
-    function saveToCart(id, name, brand, price) {
-        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        cartItems.push({
-            id: id,
-            name: name,
-            brand: brand,
-            price: price,
-            timestamp: new Date().getTime()
-        });
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    }
+    // ============================================
+    // 🔥 CRITICAL FIX: REMOVED ADD TO CART HANDLER
+    // Forms will now submit naturally to the server
+    // ============================================
+    // (Entire add-to-cart handler removed)
     
     // ============================================
     // SEARCH FUNCTIONALITY
     // ============================================
     function performSearch() {
         let searchTerm = $('#searchInput').val().trim();
-        let selectedCategory = $('.search-category-btn').contents().first().text().trim();
         
         if(searchTerm) {
-            console.log('Searching for:', searchTerm, 'in category:', selectedCategory);
-            showNotification('Searching for: ' + searchTerm, 'info');
-            
-            // Redirect to search page (uncomment when search page is ready)
-            // window.location.href = '/search?q=' + encodeURIComponent(searchTerm) + '&category=' + encodeURIComponent(selectedCategory);
+            console.log('Searching for:', searchTerm);
+            window.location.href = '/search?q=' + encodeURIComponent(searchTerm);
         } else {
             showNotification('Please enter a search term', 'warning');
         }
@@ -122,7 +74,6 @@ $(document).ready(function() {
         e.preventDefault();
         let selectedCategory = $(this).text();
         $('.search-category-btn').contents().first().replaceWith(selectedCategory);
-        console.log('Category selected:', selectedCategory);
     });
     
     // ============================================
@@ -133,7 +84,6 @@ $(document).ready(function() {
         let selectedLang = $(this).text();
         let langCode = selectedLang.split(' - ')[1] || selectedLang.split(' ')[0];
         $('.lang-selector-btn span').text(langCode);
-        console.log('Language changed to:', selectedLang);
         showNotification('Language changed to: ' + selectedLang, 'success');
     });
     
@@ -152,18 +102,7 @@ $(document).ready(function() {
     // RETURNS & ORDERS CLICK
     // ============================================
     $('#returnsOrders').on('click', function() {
-        showNotification('Navigating to Orders page', 'info');
-        // window.location.href = '/orders';
-    });
-    
-    // ============================================
-    // ACCOUNT DROPDOWN ITEM CLICKS
-    // ============================================
-    $('.account-menu .dropdown-item').on('click', function(e) {
-        e.preventDefault();
-        let linkText = $(this).text();
-        console.log('Navigating to:', linkText);
-        showNotification('Navigating to: ' + linkText, 'info');
+        window.location.href = '/orders';
     });
     
     // ============================================
@@ -211,64 +150,118 @@ $(document).ready(function() {
     // ============================================
     // NOTIFICATION SYSTEM
     // ============================================
-    function showNotification(message, type = 'info') {
+    window.showNotification = function(message, type = 'info') {
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
         } else {
             console.log(`[${type.toUpperCase()}]`, message);
             
-            // Create temporary notification
+            let bgColor = type === 'success' ? '#4caf50' : (type === 'error' ? '#f44336' : '#2196f3');
+            let icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+            
             let notification = $(`
-                <div class="temp-notification ${type}">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-                    <span>${message}</span>
+                <div class="temp-notification" style="position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white; padding: 12px 20px; border-radius: 4px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <i class="fas ${icon}"></i>
+                    <span style="margin-left: 8px;">${message}</span>
                 </div>
             `);
             
             $('body').append(notification);
             
             setTimeout(function() {
-                notification.fadeOut(function() {
+                notification.fadeOut(300, function() {
                     $(this).remove();
                 });
             }, 3000);
         }
-    }
+    };
     
     // ============================================
-    // WISHLIST BUTTON
+    // WISHLIST BUTTON - FIXED
     // ============================================
-    $('.action-btn.wishlist').on('click', function(e) {
+    $(document).on('click', '.wishlist-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
-        let heart = $(this).find('i');
-        if(heart.hasClass('far')) {
-            heart.removeClass('far').addClass('fas').css('color', '#ff4d4d');
-            showNotification('Added to wishlist!', 'success');
-        } else {
-            heart.removeClass('fas').addClass('far').css('color', '');
-            showNotification('Removed from wishlist', 'info');
+        let btn = $(this);
+        let icon = btn.find('i');
+        let productId = btn.data('id');
+        let productCard = btn.closest('.modern-product-card');
+        
+        if (!productCard.length) {
+            productCard = btn.closest('.product-item');
         }
+        
+        let productName = productCard.find('.product-title').text() || 'Product';
+        let brandName = productCard.find('.brand-name').text() || 'Brand';
+        let priceText = productCard.find('.current-price').text().replace('₹', '').replace(',', '');
+        let price = parseFloat(priceText) || 0;
+        let image = productCard.find('.product-image img').attr('src') || '';
+        
+        // Check if user is logged in via meta tag
+        let isLoggedIn = $('meta[name="user-logged-in"]').attr('content') === 'true';
+        
+        if (!isLoggedIn) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.href);
+            return;
+        }
+        
+        $.ajax({
+            url: '/wishlist',
+            type: 'POST',
+            data: {
+                product_id: productId,
+                product_name: productName,
+                product_brand: brandName,
+                price: price,
+                product_image: image,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (icon.hasClass('far')) {
+                        icon.removeClass('far').addClass('fas').css('color', '#ff4d4d');
+                        showNotification(response.message || 'Added to wishlist!', 'success');
+                    } else {
+                        icon.removeClass('fas').addClass('far').css('color', '');
+                        showNotification('Removed from wishlist', 'info');
+                    }
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status === 401) {
+                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.href);
+                } else {
+                    showNotification('Error updating wishlist', 'error');
+                }
+            }
+        });
     });
     
     // ============================================
-    // QUICK VIEW BUTTON
+    // QUICK VIEW BUTTON - FIXED
     // ============================================
-    $('.action-btn.quick-view').on('click', function(e) {
+    $(document).on('click', '.quick-view-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
-        let productCard = $(this).closest('.modern-product-card');
-        let productTitle = productCard.find('.product-title').text();
+        let productId = $(this).data('id');
         
-        showNotification('Quick view for: ' + productTitle, 'info');
-        // Add modal popup logic here
+        $.ajax({
+            url: '/product/quick-view/' + productId,
+            type: 'GET',
+            success: function(response) {
+                $('#quickViewContent').html(response);
+                $('#quickViewModal').modal('show');
+            },
+            error: function() {
+                showNotification('Error loading product details', 'error');
+            }
+        });
     });
     
     // ============================================
     // INITIALIZATION COMPLETE
     // ============================================
     console.log('All systems initialized successfully!');
-    console.log('Current cart count:', cartCount);
 });

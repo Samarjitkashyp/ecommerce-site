@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- 🔥 CRITICAL: CSRF Token for AJAX requests -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- 🔥 CRITICAL: User login status for JavaScript -->
+    <meta name="user-logged-in" content="{{ auth()->check() ? 'true' : 'false' }}">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="@yield('meta_description', 'Your trusted online shopping destination')">
+    <meta name="keywords" content="@yield('meta_keywords', 'shopping, ecommerce, online store')">
     
     <title>@yield('title', 'My Laravel Website')</title>
     
@@ -52,8 +61,15 @@
 
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
+    <!-- Owl Carousel JS (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ asset('js/custom.js') }}"></script>
+    
     <script>
-        // Toastr configuration
+        // 🔥 FIXED: Toastr configuration
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
@@ -63,13 +79,37 @@
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
         };
+
+        // 🔥 FIXED: Global functions that might be needed across pages
+        window.showNotification = function(message, type = 'info') {
+            if (typeof toastr !== 'undefined') {
+                toastr[type](message);
+            } else {
+                console.log(`[${type.toUpperCase()}]`, message);
+                alert(message);
+            }
+        };
+
+        // 🔥 FIXED: Update cart count globally
+        window.updateCartCount = function(count) {
+            $('.cart-count').text(count);
+            $('.mobile-cart-count').text(count);
+        };
+
+        // 🔥 FIXED: Get cart count on page load
+        $(document).ready(function() {
+            $.ajax({
+                url: '/cart/count',
+                type: 'GET',
+                success: function(response) {
+                    window.updateCartCount(response.count);
+                },
+                error: function() {
+                    console.log('Could not fetch cart count');
+                }
+            });
+        });
     </script>
-    
-    <!-- Owl Carousel JS (CDN) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{{ asset('js/custom.js') }}"></script>
     
     @stack('scripts')
 </body>

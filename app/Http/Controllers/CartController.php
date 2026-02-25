@@ -64,13 +64,16 @@ class CartController extends Controller
     }
     
     /**
-     * Add item to cart - COMPLETELY FIXED
+     * Add item to cart - FIXED: Handles both AJAX and normal requests
      */
     public function add(Request $request)
     {
         try {
             // Log request data for debugging
             Log::info('Add to cart request received:', $request->all());
+            
+            // Check if it's AJAX request
+            $isAjax = $request->ajax() || $request->wantsJson();
             
             // Validate request
             $validated = $request->validate([
@@ -121,28 +124,44 @@ class CartController extends Controller
             
             Log::info('Cart updated successfully. New count: ' . $cartCount);
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Item added to cart successfully!',
-                'cart_count' => $cartCount,
-                'cart' => $cart,
-                'redirect' => route('cart.index')
-            ]);
+            // 🔥 FIX: Return appropriate response based on request type
+            if ($isAjax) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item added to cart successfully!',
+                    'cart_count' => $cartCount,
+                    'cart' => $cart,
+                    'redirect' => route('cart.index')
+                ]);
+            }
+            
+            // Regular form submission - redirect to cart
+            return redirect()->route('cart.index')->with('success', 'Item added to cart successfully!');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error in add to cart:', $e->errors());
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors($e->errors())->withInput();
             
         } catch (\Exception $e) {
             Log::error('Error in add to cart: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error adding item to cart: ' . $e->getMessage()
-            ], 500);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error adding item to cart: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Error adding item to cart');
         }
     }
     

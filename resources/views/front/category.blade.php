@@ -20,9 +20,7 @@
 <section class="category-page py-4">
     <div class="container">
         <div class="row">
-            <!-- ============================================
-                 LEFT SIDEBAR - FILTERS SECTION
-                 ============================================ -->
+            <!-- LEFT SIDEBAR - FILTERS SECTION -->
             <div class="col-lg-3 mb-4 mb-lg-0">
                 <!-- Filter Sidebar -->
                 <div class="filter-sidebar">
@@ -39,7 +37,7 @@
                     </div>
                     @endif
                     
-                    <!-- 🔥 FIXED: ALL CATEGORIES FILTER SECTION -->
+                    <!-- ALL CATEGORIES FILTER SECTION -->
                     <div class="filter-section">
                         <h6 class="filter-title">ALL CATEGORIES</h6>
                         <div class="filter-options">
@@ -191,9 +189,7 @@
                 </div>
             </div>
             
-            <!-- ============================================
-                 RIGHT SIDE - PRODUCTS GRID SECTION
-                 ============================================ -->
+            <!-- RIGHT SIDE - PRODUCTS GRID SECTION -->
             <div class="col-lg-9">
                 <!-- Page Header -->
                 <div class="category-header d-flex justify-content-between align-items-center mb-4">
@@ -239,7 +235,6 @@
                                 </div>
                                 @endif
                                 <div class="product-image">
-                                    {{-- 🔥 FIXED: Image display with fallback --}}
                                     <img src="{{ $product->main_image }}" 
                                          alt="{{ $product->name }}"
                                          onerror="this.onerror=null; this.src='https://picsum.photos/300/300?random={{ $product->id }}';">
@@ -276,14 +271,20 @@
                                         @endfor
                                         <span class="rating-count">({{ number_format($product->reviews_count) }})</span>
                                     </div>
-                                    <button class="add-to-cart-btn mt-3" 
-                                            data-id="{{ $product->id }}"
-                                            data-name="{{ $product->name }}"
-                                            data-brand="{{ $product->brand }}"
-                                            data-price="{{ $product->price }}"
-                                            data-image="{{ $product->main_image }}">
-                                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                                    </button>
+                                    
+                                    <!-- 🔥 FIXED: Add to Cart Form -->
+                                    <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
+                                        @csrf
+                                        <input type="hidden" name="id" value="{{ $product->id }}">
+                                        <input type="hidden" name="name" value="{{ $product->name }}">
+                                        <input type="hidden" name="brand" value="{{ $product->brand }}">
+                                        <input type="hidden" name="price" value="{{ $product->price }}">
+                                        <input type="hidden" name="image" value="{{ $product->main_image }}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="add-to-cart-btn mt-3">
+                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -731,7 +732,7 @@ $(document).ready(function() {
     
     // Store active filters
     let activeFilters = {
-        category: [{{ $categoryInfo->id }}], // Current category selected by default
+        category: [{{ $categoryInfo->id }}],
         subcategory: [],
         price: null,
         brand: [],
@@ -801,7 +802,6 @@ $(document).ready(function() {
     function applyFilters() {
         let params = new URLSearchParams();
         
-        // Add filters to URL params
         if (activeFilters.category.length) params.append('category', activeFilters.category.join(','));
         if (activeFilters.subcategory.length) params.append('subcategory', activeFilters.subcategory.join(','));
         if (activeFilters.price) params.append('price', activeFilters.price);
@@ -884,7 +884,6 @@ $(document).ready(function() {
         let filterType = $(this).data('filter');
         let filterValue = $(this).data('value');
         
-        // Uncheck corresponding checkbox
         if (filterType === 'price') {
             $(`input[data-filter="price"][data-value="${filterValue}"]`).prop('checked', false);
             activeFilters.price = null;
@@ -944,75 +943,9 @@ $(document).ready(function() {
     });
     
     // ============================================
-    // 🔥 FIXED: ADD TO CART FUNCTIONALITY
+    // 🔥 ADD TO CART - USING NATIVE FORM SUBMISSION
+    // No JavaScript needed - forms will submit naturally
     // ============================================
-    $(document).on('click', '.add-to-cart-btn', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        let btn = $(this);
-        let id = btn.data('id');
-        let name = btn.data('name');
-        let brand = btn.data('brand');
-        let price = btn.data('price');
-        let image = btn.data('image');
-        
-        console.log('🛒 Adding to cart:', {id, name, brand, price, image});
-        
-        // Button animation
-        let originalText = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin"></i> Adding...');
-        btn.prop('disabled', true);
-        
-        $.ajax({
-            url: '{{ route("cart.add") }}',
-            type: 'POST',
-            data: {
-                id: id,
-                name: name,
-                brand: brand,
-                price: price,
-                image: image,
-                quantity: 1,
-                _token: '{{ csrf_token() }}'
-            },
-            dataType: 'json',
-            success: function(response) {
-                console.log('✅ Add to cart success:', response);
-                
-                if (response.success) {
-                    // Update cart count
-                    $('.cart-count').text(response.cart_count);
-                    $('.mobile-cart-count').text(response.cart_count);
-                    
-                    // Animate cart
-                    $('.cart-wrapper').addClass('animate__animated animate__rubberBand');
-                    setTimeout(function() {
-                        $('.cart-wrapper').removeClass('animate__animated animate__rubberBand');
-                    }, 1000);
-                    
-                    // Show success message
-                    showNotification(response.message, 'success');
-                    
-                    // 🔥 FIXED: Redirect to cart page
-                    setTimeout(function() {
-                        window.location.href = response.redirect;
-                    }, 1000);
-                }
-            },
-            error: function(xhr) {
-                console.error('❌ Add to cart error:', xhr);
-                btn.html(originalText);
-                btn.prop('disabled', false);
-                
-                let errorMessage = 'Error adding to cart';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                showNotification(errorMessage, 'error');
-            }
-        });
-    });
     
     // ============================================
     // WISHLIST
@@ -1025,7 +958,6 @@ $(document).ready(function() {
         let icon = btn.find('i');
         
         @auth
-            // Logged in user - save to database
             let productId = btn.data('id');
             
             $.ajax({
@@ -1047,14 +979,13 @@ $(document).ready(function() {
                 },
                 error: function(xhr) {
                     if (xhr.status === 401) {
-                        window.location.href = '{{ route("login") }}';
+                        window.location.href = '{{ route("login") }}?redirect=' + encodeURIComponent(window.location.href);
                     } else {
                         showNotification('Error adding to wishlist', 'error');
                     }
                 }
             });
         @else
-            // Guest user - redirect to login
             window.location.href = '{{ route("login") }}?redirect=' + encodeURIComponent(window.location.href);
         @endauth
     });
